@@ -1,0 +1,78 @@
+@import "tailwindcss";
+:root {
+    --background: #ffffff;
+    --foreground: #171717;
+}
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+     :root {
+        --background: #0a0a0a;
+        --foreground: #ededed;
+    }
+}
+
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.ant-upload {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.linear-background {
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+}
+
+.linear-background::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, #F7CFFD 20%, #EEE8FA, #B2FEED, #E8DCF9);
+    filter: blur(2px);
+    z-index: 0;
+    /* keep background behind content */
+}
+
+.fit-object {
+    object-fit: unset;
+}
+
+.no-blur {
+    position: relative;
+    z-index: 1;
+    /* ensures it's above the blurred background */
+}
+
+.selector-pri .ant-select-selector {
+    border: none !important;
+    outline: none !important;
+    height: 40px !important;
+    margin-top: 1px;
+}
+
+.ant-upload {
+    width: 100% !important;
+}
+
+@media (max-width:768px) {
+    .linear-background::before {
+        background: linear-gradient(to right, #F7CFFD 20%, #EEE8FA, #B2FEED);
+    }
+    .fit-object {
+        object-fit: cover;
+    }
+}
