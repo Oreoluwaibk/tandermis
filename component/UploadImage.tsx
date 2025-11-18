@@ -35,7 +35,7 @@ const UploadImage = ({ title, value, setValue }: props) => {
               : ""
           }
           alt="Preview"
-          className="h-[174px] w-full object-cover object-center rounded-lg"
+          className="min-h-[174px] max-h-[350px] w-full object-cover object-center rounded-lg"
         />}
         {!value && <>
           <Image src="/img.svg" alt='upload img' width={45} height={36 } />

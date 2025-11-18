@@ -48,53 +48,55 @@ export const skinLesionOptions = [
 ];
 
 export type SkinOptions = {
-    macule: boolean;
-    patch: boolean;
-    papule: boolean;
-    plaque: boolean;
-    nodule: boolean;
-    cyst: boolean;
-    pustule: boolean;
-    vesicle: boolean;
-    bullae: boolean;
-    exudative: boolean;
-    abscess: boolean;
-    telangiectasia: boolean;
-    purpura_petechiae: boolean;
-    hyperpigmentation: boolean;
-    hypopigmentation: boolean;
-    scale: boolean;
-    crust: boolean;
-    excoriation: boolean;
-    erythema: boolean;
-    blue: boolean;
-    black: boolean;
-    gray: boolean;
-    orange: boolean;
-    purple: boolean;
-    yellow: boolean;
-    fissure: boolean;
-    erosion: boolean;
-    ulcer: boolean;
-    scar: boolean;
-    atrophy: boolean;
-    friable: boolean;
-    lichenification: boolean;
-    flat_topped: boolean;
-    dome_shaped: boolean;
-    acuminate: boolean;
-    umbilicated: boolean;
-    pedunculated: boolean;
-    warty_papilloma: boolean;
-    exophytic: boolean;
-    induration: boolean;
-    poikiloderma: boolean;
-    burrow: boolean;
-    comedo: boolean;
-    wheal: boolean;
-    solitary: boolean;
-    itch: boolean;
-}
+  [K in
+    | "macule"
+    | "patch"
+    | "papule"
+    | "plaque"
+    | "nodule"
+    | "cyst"
+    | "pustule"
+    | "vesicle"
+    | "bullae"
+    | "exudative"
+    | "abscess"
+    | "telangiectasia"
+    | "purpura_petechiae"
+    | "hyperpigmentation"
+    | "hypopigmentation"
+    | "scale"
+    | "crust"
+    | "excoriation"
+    | "erythema"
+    | "blue"
+    | "black"
+    | "gray"
+    | "orange"
+    | "purple"
+    | "yellow"
+    | "fissure"
+    | "erosion"
+    | "ulcer"
+    | "scar"
+    | "atrophy"
+    | "friable"
+    | "lichenification"
+    | "flat_topped"
+    | "dome_shaped"
+    | "acuminate"
+    | "umbilicated"
+    | "pedunculated"
+    | "warty_papilloma"
+    | "exophytic"
+    | "induration"
+    | "poikiloderma"
+    | "burrow"
+    | "comedo"
+    | "wheal"
+    | "solitary"
+    | "itch"]: boolean | null;
+};
+
 export interface IPersonalData {
     location: string;
     age: string;

@@ -51,6 +51,8 @@ const InputPicker = ({
             className='selector-pri'
             onChange={setSelectValue}
         >
+            <Select.Option value="days">Day(s)</Select.Option>
+            <Select.Option value="weeks">Week(s)</Select.Option>
             <Select.Option value="months">Month(s)</Select.Option>
             <Select.Option value="years">Year(s)</Select.Option>
         </Select>

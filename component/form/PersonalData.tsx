@@ -57,10 +57,9 @@ const PersonalData = ({
           <Col lg={12} sm={12} xs={24}>
             <FormItem rules={[{required: true, message: "Upload a front image of the lesion"}]}>
                 <UploadImage 
-                    title='Front View of Lesion'
-                    value={frontImage}
-                    setValue={setFrontImage}
-
+                  title='Front View of Lesion'
+                  value={frontImage}
+                  setValue={setFrontImage}
                 />
             </FormItem>
           </Col>
@@ -87,27 +86,27 @@ const PersonalData = ({
 
         <Col lg={12} sm={12} xs={24}>
         <FormItem label="Age of patient" rules={[{required: true}]} >
-            <InputPicker 
-                number
-                value={age}
-                setValue={setAge}
-                selectValue={ageType}
-                setSelectValue={setAgeType} 
-                placeHolder='enter patient age'
-            />
+          <InputPicker 
+            number
+            value={age}
+            setValue={setAge}
+            selectValue={ageType}
+            setSelectValue={setAgeType} 
+            placeHolder='enter patient age'
+          />
         </FormItem>
         </Col>
 
         <Col lg={12} sm={12} xs={24}>
             <FormItem label="Duration of Lesion" rules={[{required: true}]} >
-                <InputPicker 
-                    number
-                    value={duration}
-                    setValue={setDuration}
-                    selectValue={durationType}
-                    setSelectValue={setDurationType} 
-                    placeHolder='enter lesion duration'
-                />
+              <InputPicker 
+                number
+                value={duration}
+                setValue={setDuration}
+                selectValue={durationType}
+                setSelectValue={setDurationType} 
+                placeHolder='enter lesion duration'
+              />
             </FormItem>
           </Col>
 

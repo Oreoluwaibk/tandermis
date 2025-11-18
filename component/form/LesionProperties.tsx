@@ -8,53 +8,58 @@ interface props {
     index: number;
     lesionProperties: any;
     setLesionProperties: React.Dispatch<React.SetStateAction<SkinOptions>>;
+    goToNext: () => void
 }
-const LesionProperties = ({ index, lesionProperties, setLesionProperties }:props) => {
+const LesionProperties = ({ index, lesionProperties, setLesionProperties, goToNext }: props) => {
   return (
     <div>
-    {skinLesionOptions.map((option, idx) => {
+      {skinLesionOptions.map((option, idx) => {
         if (idx !== index) return null;
+
         const key = option.title.toLowerCase().replace(/\s+/g, "");
-        const currentValue = lesionProperties[key] ?? false;
+        const currentValue = lesionProperties[key];
 
         const handleSelection = (value: boolean) => {
-            setLesionProperties((prev) => ({
-                ...prev,
-                [key]: value,
-            }));
+          setLesionProperties((prev) => ({
+            ...prev,
+            [key]: value,
+          }));
+
+          // go to next question
+          goToNext();
         };
 
         return (
-        <div key={idx}>
+          <div key={idx}>
             <p className="text-[#121212] text-base text-center">
-                Does it have {option.title}{" "}
-                <Tooltip
-                    color="#F0F3FF"
-                    className="ml-1"
-                    classNames={{ body: "bg-[#F0F3FF]" }}
-                    title={option.description}
-                >
-                    <QuestionCircleOutlined className="text-[#4F4F4F] cursor-pointer text-sm" />
-                </Tooltip>
+              Does it have {option.title}{" "}
+              <Tooltip
+                color="#F0F3FF"
+                className="ml-1"
+                classNames={{ body: "bg-[#F0F3FF]" }}
+                title={option.description}
+              >
+                <QuestionCircleOutlined className="text-[#4F4F4F] cursor-pointer text-sm" />
+              </Tooltip>
             </p>
 
             <div className="flex items-center justify-center gap-4 mt-6">
-                <CheckboxChoose
-                    onClick={() => handleSelection(true)}
-                    title="Yes"
-                    value={currentValue === true}
-                />
-                <CheckboxChoose
-                    onClick={() => handleSelection(false)}
-                    title="No"
-                    value={currentValue === false}
-                />
+              <CheckboxChoose
+                onClick={() => handleSelection(true)}
+                title="Yes"
+                value={currentValue === true}
+              />
+              <CheckboxChoose
+                onClick={() => handleSelection(false)}
+                title="No"
+                value={currentValue === false}
+              />
             </div>
-        </div>
+          </div>
         );
-    })}
+      })}
     </div>
-  )
-}
+  );
+};
 
 export default LesionProperties
