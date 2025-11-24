@@ -10,11 +10,14 @@ interface props {
 }
 const UploadImage = ({ title, value, setValue }: props) => {
   const handleUpload = (file: RcFile) => {
+    setValue(file);
     if (typeof value !== "string" && value) {
       URL.revokeObjectURL(value as unknown as string);
     }
-    setValue(file);
   };
+
+  console.log("fff", value, title);
+  
 
   return (
     <div className='flex flex-col items-center gap-4  md:min-w-[475px] font-sans! bg-bgUpload!'>

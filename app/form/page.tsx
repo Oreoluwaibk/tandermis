@@ -26,65 +26,65 @@ const Page = () => {
   const [ durationType, setDurationType ] = useState("months");
 
   const [ personalInfo, setPersonalInfo ] = useState<IPersonalData>({
-    location: "",
-    age: "",
-    duration: "",
-    skinType: 1,
-    frontImage: "",
-    backImage: "",
-    diagnosis: ""
+    lesion_duration: "",
+    patient_age: "",
+    lesion_location: "",
+    fitzpatrick_skin_type: 1,
+    front_view_path: "",
+    side_view_path: "",
+    clinical_diagnosis: ""
   });
   const [ frontImage, setFrontImage ] = useState<RcFile | string>("");
   const [ backImage, setBackImage ] = useState<RcFile | string>("");
   const [ index, setIndex ] = useState<number>(0); 
   const [lesionProperties, setLesionProperties] = useState<SkinOptions>({
-  macule: null,
-  patch: null,
-  papule: null,
-  plaque: null,
-  nodule: null,
-  cyst: null,
-  pustule: null,
-  vesicle: null,
-  bullae: null,
-  exudative: null,
-  abscess: null,
-  telangiectasia: null,
-  purpura_petechiae: null,
-  hyperpigmentation: null,
-  hypopigmentation: null,
-  scale: null,
-  crust: null,
-  excoriation: null,
-  erythema: null,
-  blue: null,
-  black: null,
-  gray: null,
-  orange: null,
-  purple: null,
-  yellow: null,
-  fissure: null,
-  erosion: null,
-  ulcer: null,
-  scar: null,
-  atrophy: null,
-  friable: null,
-  lichenification: null,
-  flat_topped: null,
-  dome_shaped: null,
-  acuminate: null,
-  umbilicated: null,
-  pedunculated: null,
-  warty_papilloma: null,
-  exophytic: null,
-  induration: null,
-  poikiloderma: null,
-  burrow: null,
-  comedo: null,
-  wheal: null,
-  solitary: null,
-  itch: null,
-});
+    macule: null,
+    patch: null,
+    papule: null,
+    plaque: null,
+    nodule: null,
+    cyst: null,
+    pustule: null,
+    vesicle: null,
+    bullae: null,
+    exudative: null,
+    abscess: null,
+    telangiectasia: null,
+    purpura_petechiae: null,
+    hyperpigmentation: null,
+    hypopigmentation: null,
+    scale: null,
+    crust: null,
+    excoriation: null,
+    erythema: null,
+    blue: null,
+    black: null,
+    gray: null,
+    orange: null,
+    purple: null,
+    yellow: null,
+    fissure: null,
+    erosion: null,
+    ulcer: null,
+    scar: null,
+    atrophy: null,
+    friable: null,
+    lichenification: null,
+    flat_topped: null,
+    dome_shaped: null,
+    acuminate: null,
+    umbilicated: null,
+    pedunculated: null,
+    warty_papilloma: null,
+    exophytic: null,
+    induration: null,
+    poikiloderma: null,
+    burrow: null,
+    comedo: null,
+    wheal: null,
+    solitary: null,
+    itch: null,
+  });
 
   const [ progess, setProgress ] = useState<number>(0);
   const [ openModal, setOpenModal ] = useState(false);
@@ -99,12 +99,12 @@ const Page = () => {
       setTitle(titleArray[data.step || 0])
       setPersonalInfo(data.personalInfo || {});
       setLesionProperties(data.lesionProperties || {});
-      setAge(data.personalInfo?.age?.split(" ")[0] || "");
-      setAgeType(data.personalInfo?.age?.split(" ")[1] || "months");
-      setDuration(data.personalInfo?.duration?.split(" ")[0] || "");
-      setDurationType(data.personalInfo?.duration?.split(" ")[1] || "months");
-      setFrontImage(data.personalInfo?.frontImage || "");
-      setBackImage(data.personalInfo?.backImage || "");
+      setAge(data.personalInfo?.patient_age?.split(" ")[0] || "");
+      setAgeType(data.personalInfo?.patient_age?.split(" ")[1] || "months");
+      setDuration(data.personalInfo?.lesion_duration?.split(" ")[0] || "");
+      setDurationType(data.personalInfo?.lesion_duration?.split(" ")[1] || "months");
+      setFrontImage(data.personalInfo?.front_view_path || "");
+      setBackImage(data.personalInfo?.side_view_path || "");
     }
   }, []);
 
@@ -148,11 +148,12 @@ const Page = () => {
               What is your clinical diagnosis?
             </p>
 
-            <FormItem label="" className='mt-6'>
+            <FormItem label="" className='mt-6' name="clinical_diagnosis">
               <Select 
                 placeholder="Choose clinical diagnosis"
                 showSearch
                 optionFilterProp="children"
+                onChange={(value) => setPersonalInfo(prev => ({...prev, clinical_diagnosis: value}))}
               >
                 {/* populate options here */}
 
@@ -177,7 +178,6 @@ const Page = () => {
     const currentStep = index + 1 + (steps === 0 ? 0 : 1); 
     setProgress(Math.round((currentStep / totalSteps) * 100));
   }, [index, steps]);
-
 
   const handleSteps = (step: number) => {
     
@@ -252,6 +252,8 @@ const Page = () => {
     );
   };
 
+  
+
   const handleValidation = (step: number) => {
     switch (step) {
       case 0: {
@@ -262,10 +264,10 @@ const Page = () => {
 
         const updatedInfo = {
           ...personalInfo,
-          age: `${age} ${ageType}`,
-          duration: `${duration} ${durationType}`,
-          frontImage: frontImage as string,
-          backImage: backImage as string,
+          patient_age: `${age} ${ageType}`,
+          lesion_duration: `${duration} ${durationType}`,
+          front_view_path: frontImage as string,
+          side_view_path: backImage as string,
         };
 
         setPersonalInfo(updatedInfo!);
@@ -306,7 +308,7 @@ const Page = () => {
       }
 
       case 2: {
-        if (!personalInfo.diagnosis) {
+        if (!personalInfo.clinical_diagnosis) {
           message.error("Please select a clinical diagnosis.");
           return false;
         }

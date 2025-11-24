@@ -98,13 +98,13 @@ export type SkinOptions = {
 };
 
 export interface IPersonalData {
-    location: string;
-    age: string;
-    duration: string;
-    skinType: number;
-    frontImage: string;
-    backImage: string;
-    diagnosis: string;
+    lesion_location: string;
+    patient_age: string;
+    lesion_duration: string;
+    fitzpatrick_skin_type: number;
+    front_view_path: string;
+    side_view_path: string;
+    clinical_diagnosis: string;
 }
 export const partOfTheBody = [
     "Head and Neck",
