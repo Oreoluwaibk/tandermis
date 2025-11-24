@@ -55,7 +55,7 @@ const PersonalData = ({
         </div>
         <Row gutter={[15, 15]}>
           <Col lg={12} sm={12} xs={24}>
-            <FormItem rules={[{required: true, message: "Upload a front image of the lesion"}]}>
+            <FormItem name="front_view_path" rules={[{required: true, message: "Upload a front image of the lesion"}]}>
                 <UploadImage 
                   title='Front View of Lesion'
                   value={frontImage}
@@ -65,7 +65,7 @@ const PersonalData = ({
           </Col>
 
           <Col lg={12} sm={12} xs={24}>
-            <FormItem rules={[{required: true, message: "Upload a back view image of the lesion"}]}>
+            <FormItem name="side_view_path" rules={[{required: true, message: "Upload a back view image of the lesion"}]}>
                 <UploadImage 
                     title='Back View of Lesion'
                     value={backImage}
@@ -75,7 +75,7 @@ const PersonalData = ({
           </Col>
 
         <Col lg={12} sm={12} xs={24}>
-        <FormItem rules={[{required: true}]} label="Which part of the body is the Lesion on?">
+        <FormItem name="lesion_location" rules={[{required: true}]} label="Which part of the body is the Lesion on?">
             <Select value={personalInfo.location} onChange={(value) => setPersonalInfo(prev => ({...prev, location: value}))} placeholder="choose lesion body location">
             {partOfTheBody.map((bodyPart: string,i: number) => (
                 <Option key={i} value={bodyPart}>{bodyPart}</Option>
@@ -85,7 +85,7 @@ const PersonalData = ({
         </Col>
 
         <Col lg={12} sm={12} xs={24}>
-        <FormItem label="Age of patient" rules={[{required: true}]} >
+        <FormItem name="patient_age" label="Age of patient" rules={[{required: true}]} >
           <InputPicker 
             number
             value={age}
@@ -98,7 +98,7 @@ const PersonalData = ({
         </Col>
 
         <Col lg={12} sm={12} xs={24}>
-            <FormItem label="Duration of Lesion" rules={[{required: true}]} >
+            <FormItem name="lesion_duration" label="Duration of Lesion" rules={[{required: true}]} >
               <InputPicker 
                 number
                 value={duration}
@@ -111,7 +111,7 @@ const PersonalData = ({
           </Col>
 
           <Col lg={12} sm={12} xs={24}>
-            <FormItem label="Fitzpatrick skin type" rules={[{required: true}]} >
+            <FormItem name="fitzpatrick_skin_type" label="Fitzpatrick skin type" rules={[{required: true}]} >
               <Select value={personalInfo.skinType} onChange={(value) => setPersonalInfo(prev => ({...prev, skinType: value}))} placeholder="choose skin type">
                 {fitzpatrickType.map((skinType: string,i: number) => (
                     <Option key={i} value={skinType}>{skinType}</Option>

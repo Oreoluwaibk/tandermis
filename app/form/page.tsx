@@ -13,6 +13,7 @@ import React, { useEffect, useState } from 'react'
 
 const FormItem = Form.Item;
 const titleArray = ["Personal Data", "Lesion attributes", "Diagnosis"];
+const Option = Select.Option;
 const Page = () => {
   const router = useRouter();
   const [form] = Form.useForm();
@@ -148,8 +149,19 @@ const Page = () => {
             </p>
 
             <FormItem label="" className='mt-6'>
-              <Select placeholder="Choose clinical diagnosis">
+              <Select 
+                placeholder="Choose clinical diagnosis"
+                showSearch
+                optionFilterProp="children"
+              >
                 {/* populate options here */}
+
+                <Option >Acquired Angioedema Due to C1 Inhibitor Deficiency</Option>
+                <Option>Allergic Contact Dermatitis</Option>
+                <Option>Angioedema</Option>
+                <Option>Atopic Dermatitis</Option>
+                <Option>Cholinergic Urticaria</Option>
+
               </Select>
             </FormItem>
           </div>
