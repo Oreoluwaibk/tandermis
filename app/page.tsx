@@ -3,9 +3,25 @@ import RoundBtn from "@/component/RoundBtn";
 import Image from "next/image";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
+import { useAppSelector } from "@/hook";
+import { useTransition } from "react";
 
 export default function Home() {
-  const router = useRouter()
+  const { isAuthenticated } = useAppSelector(state => state.auth);
+  const [ isPending, startTransition ] = useTransition();
+  const router = useRouter();
+
+  const handleRedirect = () => {
+    if(isAuthenticated) {
+      startTransition(() => {
+        router.push('/form');
+      })
+    }else {
+      startTransition(() => {
+        router.push('/auth/login');
+      })
+    }
+  }
   return (
     <div className="linear-background bg-cover bg-no-repeat min-h-screen w-full flex flex-col items-center justify-center font-sans relative">
 
@@ -33,7 +49,8 @@ export default function Home() {
       title="Join the Research"
       type="primary"
       icon={<ArrowRightOutlined />}
-      onClick={() => router.push('/form')}
+      onClick={handleRedirect}
+      loading={isPending}
     />
   </main>
 </div>

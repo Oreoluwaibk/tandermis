@@ -68,11 +68,18 @@ body {
     width: 100% !important;
 }
 
+.width-per-screen {
+    width: 500px;
+}
+
 @media (max-width:768px) {
     .linear-background::before {
         background: linear-gradient(to right, #F7CFFD 20%, #EEE8FA, #B2FEED);
     }
     .fit-object {
         object-fit: cover;
+    }
+    .width-per-screen {
+        width: 300;
     }
 }

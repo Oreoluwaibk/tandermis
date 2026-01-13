@@ -4,7 +4,10 @@ import LesionProperties from '@/component/form/LesionProperties';
 import PersonalData from '@/component/form/PersonalData';
 import ProgressBar from '@/component/ProgressBar';
 import RoundBtn from '@/component/RoundBtn';
+import { submitResponse } from '@/redux/action/auth';
 import { IPersonalData, skinLesionOptions, SkinOptions } from '@/savedInfo';
+import { toFormData } from '@/utils/converters';
+import { createErrorMessage } from '@/utils/errorInstance';
 import { ArrowLeftOutlined, ArrowRightOutlined, CloseOutlined } from '@ant-design/icons';
 import { App, Card, Form, Select } from 'antd'
 import { RcFile } from 'antd/es/upload';
@@ -17,14 +20,13 @@ const Option = Select.Option;
 const Page = () => {
   const router = useRouter();
   const [form] = Form.useForm();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const [ steps, setSteps ] = React.useState<number>(0);
   const [ title, setTitle ] = React.useState<string>("Personal Data");
   const [ age, setAge ] = useState<string | number | null>(null);
   const [ ageType, setAgeType ] = useState("months")
   const [ duration, setDuration ] = useState<string | number | null>(null);
   const [ durationType, setDurationType ] = useState("months");
-
   const [ personalInfo, setPersonalInfo ] = useState<IPersonalData>({
     lesion_duration: "",
     patient_age: "",
@@ -88,6 +90,7 @@ const Page = () => {
 
   const [ progess, setProgress ] = useState<number>(0);
   const [ openModal, setOpenModal ] = useState(false);
+  const [ loading, setLoading ] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("dermaFormProgress");
@@ -157,11 +160,11 @@ const Page = () => {
               >
                 {/* populate options here */}
 
-                <Option >Acquired Angioedema Due to C1 Inhibitor Deficiency</Option>
-                <Option>Allergic Contact Dermatitis</Option>
-                <Option>Angioedema</Option>
-                <Option>Atopic Dermatitis</Option>
-                <Option>Cholinergic Urticaria</Option>
+                <Option value="Acquired Angioedema Due to C1 Inhibitor Deficiency">Acquired Angioedema Due to C1 Inhibitor Deficiency</Option>
+                <Option value="Allergic Contact Dermatitis">Allergic Contact Dermatitis</Option>
+                <Option value="Angioedema">Angioedema</Option>
+                <Option value="Atopic Dermatitis">Atopic Dermatitis</Option>
+                <Option value="Cholinergic Urticaria">Cholinergic Urticaria</Option>
 
               </Select>
             </FormItem>
@@ -180,6 +183,7 @@ const Page = () => {
   }, [index, steps]);
 
   const handleSteps = (step: number) => {
+    console.log("step", step, handleValidation(step));
     
     if (step >= titleArray.length - 1) return;
     if (step === 1) {
@@ -200,6 +204,10 @@ const Page = () => {
         title: titleArray[nextStep],
       })
     );
+
+    if(step === 2) {
+      console.log("progress", JSON.parse(localStorage.getItem("dermaFormProgress") || ""))
+    }
   };
 
   const handleBack = (step: number) => {
@@ -252,8 +260,6 @@ const Page = () => {
     );
   };
 
-  
-
   const handleValidation = (step: number) => {
     switch (step) {
       case 0: {
@@ -264,8 +270,8 @@ const Page = () => {
 
         const updatedInfo = {
           ...personalInfo,
-          patient_age: `${age} ${ageType}`,
-          lesion_duration: `${duration} ${durationType}`,
+          patient_age: age, //`${age} ${ageType}`,
+          lesion_duration: duration,//`${duration} ${durationType}`,
           front_view_path: frontImage as string,
           side_view_path: backImage as string,
         };
@@ -308,6 +314,8 @@ const Page = () => {
       }
 
       case 2: {
+        console.log("is ussse");
+        
         if (!personalInfo.clinical_diagnosis) {
           message.error("Please select a clinical diagnosis.");
           return false;
@@ -322,8 +330,10 @@ const Page = () => {
             lesionProperties,
           })
         );
-
+        console.log("here ot there");
+        
         message.success("Progress saved successfully!");
+        handleSubmit({personalInfo, lesionProperties})
         return true;
       }
 
@@ -331,6 +341,44 @@ const Page = () => {
         return true;
     }
   };
+
+  const handleSubmit = (value: any) => {
+    
+    const payload = {
+      ...value.personalInfo,
+      ...value.lesionProperties,
+      front_view_path: frontImage,
+      side_view_path: backImage,
+    }
+
+    const formData = toFormData(payload)
+    setLoading(true)
+    submitResponse(formData)
+    .then((res) => {
+      if(res.status === 200 || res.status === 201) {
+        setLoading(false);
+        modal.success({
+          title: "Success",
+          content: "Your submission is successful!",
+          onOk: () => {
+            setLoading(false);
+            localStorage.removeItem("dermaFormProgress");
+            router.push("/");
+          },
+        });
+      }
+    })
+    .catch(err => {
+      setLoading(false);
+      modal.error({
+        title: "Error",
+        content: err?.response
+          ? createErrorMessage(err.response.data)
+          : err.message,
+        onOk: () => setLoading(false),
+      });
+    })
+  }
 
   return (
     <Card 
@@ -360,6 +408,7 @@ const Page = () => {
             title={steps === 2 ? "Finish" :'Next'}
             width={117}
             icon={<ArrowRightOutlined />}
+            loading={loading}
           />
         </div>
       ]}
@@ -397,7 +446,7 @@ const Page = () => {
       {openModal && <CloseModal 
         open={openModal} 
         onCancel={() => setOpenModal(false)} 
-        onClick={() => router.back()}
+        onClick={() => router.push("/")}
       />}
     </Card>
   )

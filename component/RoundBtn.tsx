@@ -11,6 +11,7 @@ interface props {
   className?: string;
   submit?: boolean;
   bg?: string;
+  loading?: boolean;
 }
 const RoundBtn = ({ 
   className, 
@@ -20,10 +21,11 @@ const RoundBtn = ({
   width, 
   back, 
   submit,
-  bg 
+  bg ,
+  loading
 }: props) => {
   return (
-    <Button htmlType={submit ? "submit" : "button"} icon={back && icon} type={type} style={{width: width || undefined, backgroundColor: bg || undefined}} className={`font-sans! ${className}`} onClick={onClick} >
+    <Button loading={loading} htmlType={submit ? "submit" : "button"} icon={back && icon} type={type} style={{width: width || undefined, backgroundColor: bg || undefined}} className={`font-sans! ${className}`} onClick={onClick} >
       {title}
       {!back && icon} 
     </Button>

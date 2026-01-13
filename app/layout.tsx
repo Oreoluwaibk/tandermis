@@ -1,8 +1,11 @@
+"use client";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConfigProvider, App as AntApp } from "antd";
 import { theme } from "@/theme/themeConfig";
+import { Provider } from "react-redux";
+import { store } from "@/store";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,10 +17,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Tandermis",
-  description: "Join the Future of Dermatology. Help AI Detect Skin Diseases with Precision!",
-};
+// export const metadata: Metadata = {
+//   title: "Tandermis",
+//   description: "Join the Future of Dermatology. Help AI Detect Skin Diseases with Precision!",
+// };
 
 export default function RootLayout({
   children,
@@ -26,14 +29,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <title>Tandermis</title>
+        <meta name="description" content="Join the Future of Dermatology. Help AI Detect Skin Diseases with Precision!" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Provider store={store}>
         <ConfigProvider theme={theme}>
           <AntApp>
           {children}
           </AntApp>
         </ConfigProvider>
+        </Provider>
       </body>
     </html>
   );

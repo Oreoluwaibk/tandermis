@@ -99,8 +99,8 @@ export type SkinOptions = {
 
 export interface IPersonalData {
     lesion_location: string;
-    patient_age: string;
-    lesion_duration: string;
+    patient_age: string | number;
+    lesion_duration: string | number;
     fitzpatrick_skin_type: number;
     front_view_path: string;
     side_view_path: string;

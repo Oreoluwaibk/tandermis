@@ -75,7 +75,7 @@ const PersonalData = ({
           </Col>
 
         <Col lg={12} sm={12} xs={24}>
-        <FormItem rules={[{required: true}]} label="Which part of the body is the Lesion on?">
+        <FormItem name="lesion_location" rules={[{required: true}]} label="Which part of the body is the Lesion on?">
             <Select 
               value={personalInfo.lesion_location} 
               onChange={(value) => setPersonalInfo(prev => ({...prev, lesion_location: value}))} 
