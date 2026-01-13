@@ -41,7 +41,7 @@ const UploadImage = ({ title, value, setValue }: props) => {
           className="min-h-[174px] max-h-[350px] w-full object-cover object-center rounded-lg"
         />}
         {!value && <>
-          <Image src="/img.svg" alt='upload img' width={45} height={36 } />
+          <Image src="/img.svg" alt='upload img' width={45} height={36} />
           <p className='text-sm'><span className="underline text-[#1C43BB] pb-1">Choose image</span> or drag & drop image</p>
           <p className='text-xs text-[#767676]'>PNG, JPEG, HIEC (max size 10mb)</p>
         </>}
