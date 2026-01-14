@@ -8,8 +8,8 @@ interface props {
 const ProgressBar = ({ title, percentage }: props) => {
   return (
     <Card 
-      className='bg-[#FCFCFC] min-h-10 md:min-h-16 w-[95%] md:p-1! p-0! md:min-w-[571px] rounded-[60px]! font-sans!'
-      classNames={{ body: '', header: "font-sans!" }}
+      className='bg-[#FCFCFC] min-h-4 md:min-h-16 w-[95%] md:p-1! p-0! md:min-w-[571px] rounded-[60px]! font-sans!'
+      classNames={{ body: 'py-1!', header: "font-sans!" }}
     >
         <p>{title} – progress</p>
 

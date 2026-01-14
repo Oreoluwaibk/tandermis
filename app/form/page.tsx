@@ -419,8 +419,8 @@ const Page = () => {
   if(!isAuthenticated) return null;
   return (
     <Card 
-      className='font-sans! pt-[50px]! md:pt-0!  min-h-screen' 
-      classNames={{ body: "relative md:p-5! px-0! min-h-[75vh] flex flex-col  justify-center", header: "md:pb-6! md:pt-8!"}}
+      className='font-sans! md:pt-[50px]! pt-4!  min-h-screen' 
+      classNames={{ body: "relative md:p-5! px-0! min-h-[84vh] flex flex-col  justify-center", header: "md:pb-6! md:pt-8! pt-2! pb-2!", actions: "pb-2!"}}
       actions={[
         !submitted ? <div className='flex justify-between items-center mt-8 px-6 '>
           <RoundBtn 
@@ -430,10 +430,11 @@ const Page = () => {
             icon={<ArrowLeftOutlined />}
             type='default'
             back
-            className={`${steps === 0 ? 'opacity-0' : 'opacity-100'}`}
+            className='opacity-100'
+            // className={`${steps === 0 ? 'opacity-0' : 'opacity-100'}`}
           />
 
-          <div className='fixed left-0 right-0 flex justify-center bottom-30 md:static w-full'>
+          <div className='fixed left-0 right-0 flex justify-center bottom-20 md:static w-full'>
             <ProgressBar 
               title={title}
               percentage={progess}
@@ -473,7 +474,7 @@ const Page = () => {
             />
           </div>
 
-          <span onClick={() => startTransition(() => router.push("/profile"))} className='md:hidden text-[#1E1E1E] font-semibold text-lg h-10 w-10 rounded-full bg-[#F5D2FC] flex items-center justify-center'>{getNickNames("John Doe")}</span>
+          <span onClick={() => startTransition(() => router.push("/profile"))} className='md:hidden text-[#1E1E1E] font-semibold text-lg h-10 w-10 rounded-full bg-[#F5D2FC] flex items-center justify-center'>{getNickNames(`${user?.first_name} ${user?.last_name}`)}</span>
         </div>
       }
     >
