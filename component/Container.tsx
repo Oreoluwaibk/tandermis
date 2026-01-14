@@ -28,7 +28,7 @@ const Container: React.FC<props> = ({ children, padding = 70, width = `700px` })
             Tandermis
         </p>
 
-        <main className={`width-per-screen no-blur flex md:px-${padding} px- 1! flex-col items-center justify-center text-center z-10 gap-6 md:pb-10`}>
+        <main className={`w-full no-blur flex md:px-${padding} px-3! flex-col items-center justify-center text-center z-10 gap-6 md:pb-10`}>
             {children}
         </main>
 
