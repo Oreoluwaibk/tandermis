@@ -4,15 +4,18 @@ import LesionProperties from '@/component/form/LesionProperties';
 import PersonalData from '@/component/form/PersonalData';
 import ProgressBar from '@/component/ProgressBar';
 import RoundBtn from '@/component/RoundBtn';
+import { useAppSelector } from '@/hook';
 import { submitResponse } from '@/redux/action/auth';
 import { IPersonalData, skinLesionOptions, SkinOptions } from '@/savedInfo';
 import { toFormData } from '@/utils/converters';
 import { createErrorMessage } from '@/utils/errorInstance';
-import { ArrowLeftOutlined, ArrowRightOutlined, CloseOutlined } from '@ant-design/icons';
-import { App, Card, Form, Select } from 'antd'
+import { getNickNames } from '@/utils/getNickname';
+import { ArrowLeftOutlined, ArrowRightOutlined, CloseOutlined, UserOutlined } from '@ant-design/icons';
+import { App, Button, Card, Divider, Form, Select } from 'antd'
 import { RcFile } from 'antd/es/upload';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useTransition } from 'react'
 
 const FormItem = Form.Item;
 const titleArray = ["Personal Data", "Lesion attributes", "Diagnosis"];
@@ -21,6 +24,7 @@ const Page = () => {
   const router = useRouter();
   const [form] = Form.useForm();
   const { message, modal } = App.useApp();
+  const { user, isAuthenticated } = useAppSelector(state => state.auth);
   const [ steps, setSteps ] = React.useState<number>(0);
   const [ title, setTitle ] = React.useState<string>("Personal Data");
   const [ age, setAge ] = useState<string | number | null>(null);
@@ -87,10 +91,15 @@ const Page = () => {
     solitary: null,
     itch: null,
   });
-
   const [ progess, setProgress ] = useState<number>(0);
   const [ openModal, setOpenModal ] = useState(false);
   const [ loading, setLoading ] = useState(false);
+  const [ submitted, setSubmitted ] = useState(false);
+  const [ isPending, startTransition ] = useTransition();
+
+  useEffect(() => {
+    if(!isAuthenticated) router.push('/auth/login');
+  }, [isAuthenticated])
 
   useEffect(() => {
     const saved = localStorage.getItem("dermaFormProgress");
@@ -102,14 +111,33 @@ const Page = () => {
       setTitle(titleArray[data.step || 0])
       setPersonalInfo(data.personalInfo || {});
       setLesionProperties(data.lesionProperties || {});
-      setAge(data.personalInfo?.patient_age?.split(" ")[0] || "");
-      setAgeType(data.personalInfo?.patient_age?.split(" ")[1] || "months");
-      setDuration(data.personalInfo?.lesion_duration?.split(" ")[0] || "");
-      setDurationType(data.personalInfo?.lesion_duration?.split(" ")[1] || "months");
+      // if(data.personalInfo?.patient_age) setAge(data.personalInfo?.patient_age?.split(" ")[0] || "");
+      // setAgeType(data.personalInfo?.patient_age?.split(" ")[1] || "months");
+      // setDuration(data.personalInfo?.lesion_duration?.split(" ")[0] || "");
+      // setDurationType(data.personalInfo?.lesion_duration?.split(" ")[1] || "months");
       setFrontImage(data.personalInfo?.front_view_path || "");
       setBackImage(data.personalInfo?.side_view_path || "");
     }
   }, []);
+
+  const resetFields = () => {
+    setAge(null);
+    setAgeType("months");
+    setDuration(null);
+    setDurationType("months");
+    setPersonalInfo({
+      lesion_duration: "",
+      patient_age: "",
+      lesion_location: "",
+      fitzpatrick_skin_type: 1,
+      front_view_path: "",
+      side_view_path: "",
+      clinical_diagnosis: ""
+    })
+    setFrontImage("");
+    setBackImage("");
+    form.resetFields();
+  };
 
   const renderSteps = () => {
     switch (steps) {
@@ -146,7 +174,7 @@ const Page = () => {
 
       case 2:
         return (
-          <div className='md:px-[400px]'>
+          <div className='md:px-[250px]'>
             <p className="text-[#121212] text-base text-center mb-6">
               What is your clinical diagnosis?
             </p>
@@ -156,6 +184,7 @@ const Page = () => {
                 placeholder="Choose clinical diagnosis"
                 showSearch
                 optionFilterProp="children"
+                className='min-w-3/4'
                 onChange={(value) => setPersonalInfo(prev => ({...prev, clinical_diagnosis: value}))}
               >
                 {/* populate options here */}
@@ -343,10 +372,11 @@ const Page = () => {
   };
 
   const handleSubmit = (value: any) => {
-    
     const payload = {
       ...value.personalInfo,
       ...value.lesionProperties,
+      patient_age_unit: ageType,
+      lesion_duration_unit: durationType,
       front_view_path: frontImage,
       side_view_path: backImage,
     }
@@ -363,7 +393,13 @@ const Page = () => {
           onOk: () => {
             setLoading(false);
             localStorage.removeItem("dermaFormProgress");
-            router.push("/");
+            setSubmitted(true);
+            setSteps(0);
+            setIndex(0);
+            setTitle(titleArray[0]);
+            resetFields();
+            setProgress(0);
+            // router.push("/");
           },
         });
       }
@@ -380,12 +416,13 @@ const Page = () => {
     })
   }
 
+  if(!isAuthenticated) return null;
   return (
     <Card 
       className='font-sans! pt-[50px]! md:pt-0!  min-h-screen' 
-      classNames={{ body: "relative md:p-5! px-0! min-h-[75vh] flex flex-col  justify-center"}}
+      classNames={{ body: "relative md:p-5! px-0! min-h-[75vh] flex flex-col  justify-center", header: "md:pb-6! md:pt-8!"}}
       actions={[
-        <div className='flex justify-between items-center mt-8 px-6 '>
+        !submitted ? <div className='flex justify-between items-center mt-8 px-6 '>
           <RoundBtn 
             onClick={() => handleBack(steps)}
             title='Back'
@@ -396,7 +433,7 @@ const Page = () => {
             className={`${steps === 0 ? 'opacity-0' : 'opacity-100'}`}
           />
 
-          <div className='fixed left-0 right-0 flex justify-center top-0 md:static w-full'>
+          <div className='fixed left-0 right-0 flex justify-center bottom-30 md:static w-full'>
             <ProgressBar 
               title={title}
               percentage={progess}
@@ -410,38 +447,76 @@ const Page = () => {
             icon={<ArrowRightOutlined />}
             loading={loading}
           />
-        </div>
+        </div> : (
+        <footer className="w-full text-center  text-sm text-[#6F6F6F]">
+          {/* <Divider style={{ height: 1 }} /> */}
+          <p>*Tandermis keeps your data safe and secured. We do not</p>
+          <p>share your data with any third party, it is use to train our Ai</p>
+          <p>model alone*</p>
+        </footer>
+        )
       ]}
-    >
-      
-      <div className='flex flex-col items-center md:gap-4 gap-2 relative! mt-4'>
-        <p className='md:text-2xl text-xl font-medium'>Data Collection Form</p>
-        <div className='text-center md:text-base text-xs'>
-          <p className='text-[#4F4F4F]'>We're building a next-generation AI system trained to identify skin</p>
-          <p className='text-[#4F4F4F]'>conditions early and accurately. </p>
+      title={<p className='text-[#121212] text-2xl font-extrabold'>Tandermis</p>}
+      extra={
+        <div className='flex items-center justify-center relative'>
+          
+          <div className='md:block hidden'>
+            <RoundBtn 
+              onClick={() => startTransition(() => router.push("/profile"))}
+              title={user?.first_name + " " + user?.last_name}
+              width={157}
+              icon={<UserOutlined />}
+              type='default'
+              back
+              loading={isPending}
+              // className="absolute top-6! right-6!"
+            />
+          </div>
+
+          <span onClick={() => startTransition(() => router.push("/profile"))} className='md:hidden text-[#1E1E1E] font-semibold text-lg h-10 w-10 rounded-full bg-[#F5D2FC] flex items-center justify-center'>{getNickNames("John Doe")}</span>
         </div>
-      </div>
+      }
+    >
+      {!submitted && <>
+        <div className='flex flex-col items-center md:gap-4 gap-2 relative! mt-4'>
+          <p className='md:text-2xl text-xl font-medium'>Data Collection Form</p>
+          <div className='text-center md:text-base text-xs'>
+            <p className='text-[#4F4F4F]'>We're building a next-generation AI system trained to identify skin</p>
+            <p className='text-[#4F4F4F]'>conditions early and accurately. </p>
+          </div>
+        </div>
 
-      <div className='md:hidden block absolute left-5 top-11'>
-        <ArrowLeftOutlined onClick={() => setOpenModal(true)} className="cursor-pointer" />
-      </div>
-      <div className='absolute right-0 top-0 md:block hidden'>
-         <RoundBtn 
-          onClick={() => setOpenModal(true)}
-          title='Close'
-          width={117}
-          icon={<CloseOutlined />}
-          type='default'
-          back
-          className="absolute top-6! right-6!"
-        />
-      </div>
+        <Card className='rounded-[40px]! md:mx-20! md:mt-0 mt-8! bg-[#F5F5F5]!' classNames={{ body: "border-t border-t-[#C4C4C4]! !mx-0 md:m-4 md:p-5! p-2!" }} title={<p className='text-pri font-medium text-center md:text-left text-lg'>{title}</p>}>
+          <Form layout="vertical" form={form} className='font-sans!'>
+            {renderSteps()}
+          </Form>
+        </Card>
+      </>}
 
-      <Card className='rounded-[40px]! md:mt-0 mt-8!' classNames={{ body: "!mx-0 md:m-4 md:p-5! p-2!" }} title={<p className='text-pri font-medium text-center md:text-left text-lg'>{title}</p>}>
-        <Form layout="vertical" form={form} className='font-sans!'>
-          {renderSteps()}
-        </Form>
-      </Card>
+      {submitted && (
+        <div className='w-full flex flex-col items-center justify-center'>
+            <div className='flex items-center justify-center mb-5'>
+              <Image src="/succes.svg" alt='success icon' width={100} height={100} />
+            </div>
+
+            <div style={{ lineHeight: '1' }}>
+              <p className='text-[#121212] text-[28px] font-semibold text-center mb-0!'>Patient data successfully </p>
+              <p className='text-[#121212] text-[28px] font-semibold text-center mb-4'>submitted</p>
+            </div>
+            
+            <p className='text-base text-[#4F4F4F] text-center'>Thank you for contributing to the training of</p>
+            <p className='text-base text-[#4F4F4F] text-center'>Tandermis’ diagnostic AI.</p>
+            <Button // 
+              type="primary"
+              className="text-white text-lg! w-full rounded-[40px]! h-14! mt-4 md:w-[405px]"
+              // loading={isPending}
+              onClick={() => setSubmitted(false)}
+            >
+                Submit Another Case
+              </Button>
+          </div>
+      )}
+     
 
       {openModal && <CloseModal 
         open={openModal} 

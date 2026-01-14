@@ -71,7 +71,7 @@ const Login = () => {
                 label="Password" 
                 rules={[{ required: true, message: 'Please enter your password' }]}
                 >
-                <Input.Password className='h-11!' placeholder='Enter ypur password' />
+                <Input.Password className='h-11!' placeholder='Enter your password' />
             </FormItem>
             <p className='text-base text-right mt-0 mb-4'><Link href="/auth/forgot-password" className='text-[#121212]! font-semibold'>Forgot Password</Link></p>
 

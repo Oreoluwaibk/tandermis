@@ -89,6 +89,12 @@ export const resetPassword = async(data: {newPassword: string, token: string, em
     return Promise.resolve(response);
 }
 
+export const getContributor = async() => {
+    const response = await axiosInstance.get(`${baseUrl}/contributor/`,);
+    return Promise.resolve(response);
+}
+
+
 export const submitResponse = async(data: FormData) => {
     const url = `/derm-cases/`;
     const response = await axiosInstance.post(url, data, {
