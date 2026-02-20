@@ -83,12 +83,13 @@ const Login = () => {
                     className="text-white text-lg! w-full rounded-[40px]! h-14!"
                     loading={loading}
                 >
-                    Enter the Research
+                    Login
                 </Button>
             </FormItem>
 
             <p className='text-base'>Don’t have an account? <Link href="/auth/signup" className='text-[#121212]! font-semibold'>Sign up</Link></p>
         </Form>
+    <p className='text-base'><Link href="/form" className='text-[#121212]! font-semibold'>Enter the Research Anonymously</Link></p>
       </div>
     </Container>
   )

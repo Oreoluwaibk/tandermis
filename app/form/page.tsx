@@ -98,7 +98,7 @@ const Page = () => {
   const [ isPending, startTransition ] = useTransition();
 
   useEffect(() => {
-    if(!isAuthenticated) router.push('/auth/login');
+    // if(!isAuthenticated) router.push('/auth/login');
   }, [isAuthenticated])
 
   useEffect(() => {
@@ -416,7 +416,7 @@ const Page = () => {
     })
   }
 
-  if(!isAuthenticated) return null;
+  // if(!isAuthenticated) return null;
   return (
     <Card 
       className='font-sans! md:pt-[50px]! pt-4!  min-h-screen' 
@@ -463,8 +463,8 @@ const Page = () => {
           
           <div className='md:block hidden'>
             <RoundBtn 
-              onClick={() => startTransition(() => router.push("/profile"))}
-              title={user?.first_name + " " + user?.last_name}
+              onClick={() => user ? startTransition(() => router.push("/profile")): null}
+              title={user ? user?.first_name + " " + user?.last_name : `Guest`}
               width={157}
               icon={<UserOutlined />}
               type='default'

@@ -17,7 +17,7 @@ const Container: React.FC<props> = ({ children, padding = 70, width = `700px` })
         if(isAuthenticated) router.push("/form");
     }, [isAuthenticated])
   return (
-    <div className="linear-background bg-cover bg-no-repeat min-h-screen w-full flex flex-col items-center justify-center font-sans relative">
+    <div className="linear-background bg-cover bg-no-repeat min-h-screen w-full md:px-130 flex flex-col items-center justify-center font-sans relative ">
         <img 
             src="/bgc.svg" 
             className="absolute fit-object h-5/6 top-[12%] md:h-full w-full! md:top-8 overflow-hidden z-0"
