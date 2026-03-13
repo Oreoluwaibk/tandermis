@@ -58,7 +58,7 @@ axiosInstance.interceptors.request.use(
     const token = selectedToken(state);
     // const expiry = selectedTokenExpiry(state);
     const now = Date.now();
-    config.headers["Authorization"] = `Bearer ${token}`;
+    if (token) config.headers["Authorization"] = `Bearer ${token}`;
 
     // ✅ Check if token expired before sending request
     // if (expiry && expiry < now) {
