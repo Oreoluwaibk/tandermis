@@ -9,6 +9,7 @@ interface props {
     selectValue: string;
     setSelectValue: React.Dispatch<React.SetStateAction<string>>;
     placeHolder: string;
+    className?: string;
 }
 const InputPicker = ({ 
     number,
@@ -16,45 +17,49 @@ const InputPicker = ({
     setValue,
     selectValue,
     setSelectValue,
-    placeHolder 
+    placeHolder,
+    className = "",
 }: props) => {
   return (
-    <div className='h-11 rounded-[30px] w-full border border-[#C4C4C4] flex items-center justify-between'>
+    <div className={`h-11 rounded-[40px] w-full border border-[#C4C4C4] flex items-center justify-between bg-white ${className}`}>
         {!number && <Input />}
         {number && (
             <InputNumber 
                 style={{
                     border: "none", 
                     outline: "none", 
-                    width: "80%",
-                    backgroundColor: "transparent"
+                    width: "75%",
+                    backgroundColor: "transparent",
+                    boxShadow: "none",
                 }}
-                placeholder='enter lesion duration'
+                controls={false}
+                placeholder={placeHolder}
                 value={value}
                 onChange={setValue}
                 min={0}
+                className="dashboard-number-input"
             />
         )}
         <Select 
             suffixIcon={
-                <span className='flex items-center gap-2 text-[#2F2F2F] text-xs'>{selectValue} 
-                <span className='flex flex-col items-center gap-1'>
-                    <UpOutlined className='text-[10px] text-[#2F2F2F]!' />
-                    <DownOutlined className='text-[10px] text-[#2F2F2F]!' />
-                </span>
+                <span className='flex items-center gap-1.5 pr-1 text-[#2F2F2F] text-xs capitalize'>
+                    {selectValue}
+                    <span className='flex flex-col items-center gap-0.5 leading-none'>
+                        <UpOutlined className='text-[8px]!' />
+                        <DownOutlined className='text-[8px]!' />
+                    </span>
                 </span>
             }
-            style={{border: "none", outline: "none", width: "20%"}}
-            // className='flex'
-            styles={{root: {border: "none", outline: "none"}}}
-            value=""
+            variant="borderless"
+            style={{ width: "auto", minWidth: "88px" }}
+            value={selectValue}
             className='selector-pri'
             onChange={setSelectValue}
         >
-            <Select.Option value="days">Day(s)</Select.Option>
-            <Select.Option value="weeks">Week(s)</Select.Option>
-            <Select.Option value="months">Month(s)</Select.Option>
-            <Select.Option value="years">Year(s)</Select.Option>
+            <Select.Option value="days">days</Select.Option>
+            <Select.Option value="weeks">weeks</Select.Option>
+            <Select.Option value="months">months</Select.Option>
+            <Select.Option value="years">years</Select.Option>
         </Select>
     </div>
   )

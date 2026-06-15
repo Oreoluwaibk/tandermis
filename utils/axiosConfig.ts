@@ -59,6 +59,7 @@ axiosInstance.interceptors.request.use(
     // const expiry = selectedTokenExpiry(state);
     const now = Date.now();
     if (token) config.headers["Authorization"] = `Bearer ${token}`;
+    if(token) console.log("token", token)
 
     // ✅ Check if token expired before sending request
     // if (expiry && expiry < now) {
@@ -90,44 +91,44 @@ axiosInstance.interceptors.response.use(
     // ✅ Handle 401 errors (unauthorized)
     console.log("the current error", error.response?.status, !originalRequest._retry);
     
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      const state = store.getState();
-      const token = selectedToken(state);
+    // if (error.response?.status === 401 && !originalRequest._retry) {
+    //   originalRequest._retry = true;
+    //   const state = store.getState();
+    //   const token = selectedToken(state);
 
-      if (!token) {
-        if (typeof window !== "undefined") {
-          const currentUrl = window.location.pathname + window.location.search;
-          // store.dispatch(setLastRoute(currentUrl));
-        }
-        store.dispatch(logoutUser());
-        return Promise.reject(error);
-      }
+    //   if (!token) {
+    //     if (typeof window !== "undefined") {
+    //       const currentUrl = window.location.pathname + window.location.search;
+    //       // store.dispatch(setLastRoute(currentUrl));
+    //     }
+    //     store.dispatch(logoutUser());
+    //     return Promise.reject(error);
+    //   }
 
-      // if (!isRefreshing) {
-      //   isRefreshing = true;
-      //   try {
-      //     const newToken = await handleTokenRefresh(token);
+    //   // if (!isRefreshing) {
+    //   //   isRefreshing = true;
+    //   //   try {
+    //   //     const newToken = await handleTokenRefresh(token);
 
-      //     // retry with new token
-      //     originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
-      //     return axiosInstance(originalRequest);
-      //   } catch (err) {
-      //     return Promise.reject(err);
-      //   }
-      // } else {
-      //   // wait for ongoing refresh
-      //   try {
-      //     const newToken = await new Promise((resolve, reject) => {
-      //       refreshQueue.push({ resolve, reject });
-      //     });
-      //     originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
-      //     return axiosInstance(originalRequest);
-      //   } catch (err) {
-      //     return Promise.reject(err);
-      //   }
-      // }
-    }
+    //   //     // retry with new token
+    //   //     originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+    //   //     return axiosInstance(originalRequest);
+    //   //   } catch (err) {
+    //   //     return Promise.reject(err);
+    //   //   }
+    //   // } else {
+    //   //   // wait for ongoing refresh
+    //   //   try {
+    //   //     const newToken = await new Promise((resolve, reject) => {
+    //   //       refreshQueue.push({ resolve, reject });
+    //   //     });
+    //   //     originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+    //   //     return axiosInstance(originalRequest);
+    //   //   } catch (err) {
+    //   //     return Promise.reject(err);
+    //   //   }
+    //   // }
+    // }
 
     return Promise.reject(error);
   }

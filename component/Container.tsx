@@ -14,7 +14,7 @@ const Container: React.FC<props> = ({ children, padding = 70, width = `700px` })
     const { isAuthenticated } = useAppSelector(state => state.auth);
 
     useEffect(() => {
-        if(isAuthenticated) router.push("/form");
+        if(isAuthenticated) router.push("/dashboard");
     }, [isAuthenticated])
   return (
     <div className="linear-background bg-cover bg-no-repeat min-h-screen w-full md:px-130 flex flex-col items-center justify-center font-sans relative ">

@@ -72,6 +72,64 @@ body {
     width: 500px;
 }
 
+.dashboard-form .ant-select-selector {
+    background-color: #ffffff !important;
+    border-color: #C4C4C4 !important;
+    min-height: 40px !important;
+    align-items: center !important;
+    border-radius: 40px !important;
+}
+
+@media (min-width: 768px) {
+    .dashboard-form .ant-select-selector {
+        min-height: 44px !important;
+    }
+}
+
+.dashboard-form .ant-select .ant-select-selector {
+    border-radius: 40px !important;
+}
+
+.dashboard-form .ant-select-single .ant-select-selector {
+    border-radius: 40px !important;
+    padding-inline: 16px !important;
+}
+
+.dashboard-form .ant-form-item-label > label {
+    font-weight: 400;
+    color: #191919;
+    font-size: 13px;
+}
+
+@media (min-width: 768px) {
+    .dashboard-form .ant-form-item-label > label {
+        font-size: 14px;
+    }
+}
+
+.dashboard-form .ant-form-item {
+    margin-bottom: 12px;
+}
+
+@media (min-width: 768px) {
+    .dashboard-form .ant-form-item {
+        margin-bottom: 16px;
+    }
+}
+
+.dashboard-form .ant-input-number {
+    background-color: transparent !important;
+    border-radius: 40px !important;
+}
+
+.dashboard-form .ant-input-number-input {
+    height: 42px !important;
+}
+
+.dashboard-field-input {
+    border-radius: 40px !important;
+}
+
 @media (max-width:768px) {
     .linear-background::before {
         background: linear-gradient(to right, #F7CFFD 20%, #EEE8FA, #B2FEED);
