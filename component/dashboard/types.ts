@@ -6,13 +6,15 @@ export interface CaseFormData {
   lesionLocation: string;
   patientAge: string | number | null;
   patientAgeUnit: string;
+  patientSex: string;
   lesionDuration: string | number | null;
   lesionDurationUnit: string;
   fitzpatrickSkinType: string;
   erythematous: string;
-  clinicalDiagnosis: string;
-  frontImage: RcFile | string;
-  sideImage: RcFile | string;
+  isLesionItchy: string;
+  associatedSymptoms: string;
+  additionalInformation: string;
+  lesionImage: RcFile | string;
 }
 
 export interface HistoryCase {
@@ -33,27 +35,16 @@ export const emptyFormData = (): CaseFormData => ({
   lesionLocation: "",
   patientAge: null,
   patientAgeUnit: "years",
+  patientSex: "",
   lesionDuration: null,
   lesionDurationUnit: "months",
   fitzpatrickSkinType: "",
   erythematous: "",
-  clinicalDiagnosis: "",
-  frontImage: "",
-  sideImage: "",
+  isLesionItchy: "",
+  associatedSymptoms: "",
+  additionalInformation: "",
+  lesionImage: "",
 });
-
-export const clinicalDiagnosisOptions = [
-  "Acquired Angioedema Due to C1 Inhibitor Deficiency",
-  "Allergic Contact Dermatitis",
-  "Angioedema",
-  "Atopic Dermatitis",
-  "Cholinergic Urticaria",
-  "Melanoma",
-  "Basal Cell Carcinoma",
-  "Seborrheic Keratosis",
-  "Psoriasis",
-  "Eczema",
-];
 
 export const fitzpatrickLabels: Record<string, string> = {
   I: "Very Fair",

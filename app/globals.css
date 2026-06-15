@@ -151,6 +151,12 @@ body {
     border-radius: 40px !important;
 }
 
+.dashboard-textarea.ant-input {
+    border-color: #C4C4C4 !important;
+    resize: vertical;
+    min-height: 96px;
+}
+
 .ant-upload {
     width: 100% !important;
 }

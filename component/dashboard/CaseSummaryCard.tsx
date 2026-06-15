@@ -22,8 +22,7 @@ const CaseSummaryCard = ({
   compact,
   variant = "default",
 }: CaseSummaryCardProps) => {
-  const frontSrc = getImageSrc(formData.frontImage);
-  const sideSrc = getImageSrc(formData.sideImage);
+  const lesionSrc = getImageSrc(formData.lesionImage);
   const isChat = variant === "chat";
 
   const fields = [
@@ -36,6 +35,10 @@ const CaseSummaryCard = ({
       answer: formData.patientAge
         ? `${formData.patientAge} ${formData.patientAgeUnit}`
         : "",
+    },
+    {
+      question: "Sex of patient",
+      answer: formData.patientSex,
     },
     {
       question: "Duration of lesion",
@@ -54,46 +57,58 @@ const CaseSummaryCard = ({
       answer: formData.erythematous,
     },
     {
-      question: "What is your clinical diagnosis?",
-      answer: formData.clinicalDiagnosis,
+      question: "Is lesion itchy?",
+      answer: formData.isLesionItchy,
+    },
+    {
+      question: "Associated symptoms",
+      answer: formData.associatedSymptoms,
+      multiline: true,
+    },
+    {
+      question: "Additional information",
+      answer: formData.additionalInformation,
       multiline: true,
     },
   ];
 
   if (isChat) {
     return (
-      <div className="w-full rounded-[24px] border border-[#ECECEC] bg-[#F7F7F8] px-5 py-4 shadow-sm md:rounded-[28px] md:px-6 md:py-5">
-        {(frontSrc || sideSrc) && (
-          <div className="mb-4 flex gap-2.5">
-            {frontSrc && (
-              <img
-                src={frontSrc}
-                alt="Front view"
-                className="h-[72px] w-[72px] rounded-2xl object-cover md:h-20 md:w-20"
-              />
-            )}
-            {sideSrc && (
-              <img
-                src={sideSrc}
-                alt="Side view"
-                className="h-[72px] w-[72px] rounded-2xl object-cover md:h-20 md:w-20"
-              />
-            )}
+      <div className="w-full rounded-3xl border border-[#ECECEC] bg-[#F7F7F8] px-5 py-4 shadow-sm md:rounded-[28px] md:px-6 md:py-5">
+        {lesionSrc && (
+          <div className="mb-4">
+            <img
+              src={lesionSrc}
+              alt="Lesion"
+              className="h-[72px] w-[72px] rounded-2xl object-cover md:h-20 md:w-20"
+            />
           </div>
         )}
 
         <div className="flex flex-col gap-3.5 md:gap-4">
-          {fields.map((field) => (
-            <p
-              key={field.question}
-              className="text-sm leading-relaxed text-[#5D5D5D] md:text-[15px]"
-            >
-              {field.question}{" "}
-              <span className="font-semibold text-[#121212]">
-                Answer: {field.answer || "—"}
-              </span>
-            </p>
-          ))}
+          {fields.map((field) =>
+            field.multiline && field.answer ? (
+              <div
+                key={field.question}
+                className="text-sm leading-relaxed text-[#5D5D5D] md:text-[15px]"
+              >
+                <p>{field.question}</p>
+                <p className="mt-1 font-semibold text-[#121212]">
+                  Answer: {field.answer}
+                </p>
+              </div>
+            ) : (
+              <p
+                key={field.question}
+                className="text-sm leading-relaxed text-[#5D5D5D] md:text-[15px]"
+              >
+                {field.question}{" "}
+                <span className="font-semibold text-[#121212]">
+                  Answer: {field.answer || "—"}
+                </span>
+              </p>
+            )
+          )}
         </div>
       </div>
     );
@@ -101,26 +116,19 @@ const CaseSummaryCard = ({
 
   return (
     <div
-      className={`w-full rounded-[20px] bg-[#F5F5F5] md:rounded-[24px] ${
+      className={`w-full rounded-[20px] bg-[#F5F5F5] md:rounded-3xl ${
         compact ? "p-3 md:p-4" : "p-6"
       }`}
     >
-      <div className="mb-3 flex gap-2 md:mb-4 md:gap-3">
-        {frontSrc && (
+      {lesionSrc && (
+        <div className="mb-3 md:mb-4">
           <img
-            src={frontSrc}
-            alt="Front view"
+            src={lesionSrc}
+            alt="Lesion"
             className="h-14 w-14 rounded-xl object-cover md:h-16 md:w-16"
           />
-        )}
-        {sideSrc && (
-          <img
-            src={sideSrc}
-            alt="Side view"
-            className="h-14 w-14 rounded-xl object-cover md:h-16 md:w-16"
-          />
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-2 md:gap-3">
         {fields.map((field) => (

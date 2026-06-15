@@ -4,12 +4,13 @@ import InputPicker from "@/component/InputPicker";
 import UploadImage from "@/component/UploadImage";
 import { fitzpatrickType, partOfTheBody } from "@/savedInfo";
 import { ArrowRightOutlined, QuestionCircleOutlined } from "@ant-design/icons";
-import { Button, Col, Form, Row, Select, Tooltip } from "antd";
+import { Button, Col, Form, Input, Row, Select, Tooltip } from "antd";
 import { RcFile } from "antd/es/upload";
 import React from "react";
-import { CaseFormData, clinicalDiagnosisOptions } from "./types";
+import { CaseFormData } from "./types";
 
 const { Option } = Select;
+const { TextArea } = Input;
 
 interface DataCollectionFormProps {
   formData: CaseFormData;
@@ -23,6 +24,8 @@ const fieldSelectProps = {
   size: "large" as const,
 };
 
+const formItemClass = "mb-3! md:mb-4!";
+
 const DataCollectionForm = ({
   formData,
   onChange,
@@ -30,14 +33,14 @@ const DataCollectionForm = ({
   loading,
 }: DataCollectionFormProps) => {
   const isComplete =
-    formData.frontImage &&
-    formData.sideImage &&
+    formData.lesionImage &&
     formData.lesionLocation &&
     formData.patientAge &&
+    formData.patientSex &&
     formData.lesionDuration &&
     formData.fitzpatrickSkinType &&
     formData.erythematous &&
-    formData.clinicalDiagnosis;
+    formData.isLesionItchy;
 
   return (
     <div className="mx-auto flex h-full w-full max-w-[860px] flex-col overflow-hidden">
@@ -53,217 +56,261 @@ const DataCollectionForm = ({
 
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-[#E0E0E0] bg-[#F5F5F5] md:rounded-[40px]">
-          <div className="shrink-0 px-3 pt-3 md:px-5 md:pt-4">
+          <div className="shrink-0 px-3 pt-3 md:px-6 md:pt-5">
             <p className="text-sm font-medium text-[#121212] md:text-lg">
               Patient Personal Data
             </p>
             <div className="my-2 border-t border-[#C4C4C4] md:my-3" />
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3 md:px-5 md:pb-4">
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4 md:px-6 md:pb-5">
+            {/* Image upload */}
+            <section className="mb-5 md:mb-6">
+              <p className="text-sm font-medium text-[#121212] md:text-base">
+                Patient Skin Lesion
+              </p>
+              <p className="mt-0.5 text-xs text-[#474747] md:text-sm">
+                Upload a photograph of the skin lesion
+              </p>
+              <div className="mt-3 flex justify-center md:mt-4">
+                <div className="w-full max-w-[420px]">
+                  <UploadImage
+                    variant="dashboard"
+                    title="Lesion Image"
+                    value={formData.lesionImage}
+                    setValue={(val) =>
+                      onChange({ lesionImage: val as RcFile | string })
+                    }
+                    showDelete
+                  />
+                </div>
+              </div>
+            </section>
 
-        <div className="mb-4 md:mb-5">
-          <p className="text-sm font-medium text-[#121212] md:text-base">
-            Patient Skin Lesion
-          </p>
-          <p className="mt-0.5 text-xs text-[#474747] md:text-sm">
-            Upload a photograph of the skin lesion
-          </p>
+            {/* Form fields */}
+            <Form layout="vertical" className="dashboard-form font-sans!">
+              <Row gutter={[16, 0]}>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    label="Which part of the body is the Lesion on?"
+                    required
+                    className={formItemClass}
+                  >
+                    <Select
+                      {...fieldSelectProps}
+                      placeholder="choose lesion body location"
+                      value={formData.lesionLocation || undefined}
+                      onChange={(val) => onChange({ lesionLocation: val })}
+                    >
+                      {partOfTheBody.map((part) => (
+                        <Option key={part} value={part}>
+                          {part}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
 
-          <Row gutter={[12, 12]} className="mt-3 md:mt-4">
-            <Col xs={24} md={12}>
-              <UploadImage
-                variant="dashboard"
-                title="Front View of Lesion"
-                value={formData.frontImage}
-                setValue={(val) =>
-                  onChange({ frontImage: val as RcFile | string })
-                }
-                showDelete
-              />
-            </Col>
-            <Col xs={24} md={12}>
-              <UploadImage
-                variant="dashboard"
-                title="Side View of Lesion"
-                value={formData.sideImage}
-                setValue={(val) =>
-                  onChange({ sideImage: val as RcFile | string })
-                }
-                showDelete
-              />
-            </Col>
-          </Row>
-        </div>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    label="Age of patient"
+                    required
+                    className={formItemClass}
+                  >
+                    <InputPicker
+                      number
+                      value={formData.patientAge}
+                      setValue={(val) => {
+                        const next =
+                          typeof val === "function"
+                            ? val(formData.patientAge)
+                            : val;
+                        onChange({ patientAge: next });
+                      }}
+                      selectValue={formData.patientAgeUnit}
+                      setSelectValue={(val) => {
+                        const next =
+                          typeof val === "function"
+                            ? val(formData.patientAgeUnit)
+                            : val;
+                        onChange({ patientAgeUnit: next });
+                      }}
+                      placeHolder="enter patient age"
+                    />
+                  </Form.Item>
+                </Col>
 
-        <Form layout="vertical" className="dashboard-form font-sans!">
-          <Row gutter={[12, 0]}>
-            <Col xs={24} md={12}>
-              <Form.Item
-                label="Which part of the body is the Lesion on?"
-                required
-                className="mb-3! md:mb-4!"
-              >
-                <Select
-                  {...fieldSelectProps}
-                  placeholder="choose lesion body location"
-                  value={formData.lesionLocation || undefined}
-                  onChange={(val) => onChange({ lesionLocation: val })}
-                >
-                  {partOfTheBody.map((part) => (
-                    <Option key={part} value={part}>
-                      {part}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    label="Sex of patient"
+                    required
+                    className={formItemClass}
+                  >
+                    <Select
+                      {...fieldSelectProps}
+                      placeholder="choose sex"
+                      value={formData.patientSex || undefined}
+                      onChange={(val) => onChange({ patientSex: val })}
+                    >
+                      <Option value="Male">Male</Option>
+                      <Option value="Female">Female</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
 
-            <Col xs={24} md={12}>
-              <Form.Item label="Age of patient" required className="mb-3! md:mb-4!">
-                <InputPicker
-                  number
-                  value={formData.patientAge}
-                  setValue={(val) => {
-                    const next =
-                      typeof val === "function"
-                        ? val(formData.patientAge)
-                        : val;
-                    onChange({ patientAge: next });
-                  }}
-                  selectValue={formData.patientAgeUnit}
-                  setSelectValue={(val) => {
-                    const next =
-                      typeof val === "function"
-                        ? val(formData.patientAgeUnit)
-                        : val;
-                    onChange({ patientAgeUnit: next });
-                  }}
-                  placeHolder="enter patient age"
-                />
-              </Form.Item>
-            </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    label="Duration of Lesion"
+                    required
+                    className={formItemClass}
+                  >
+                    <InputPicker
+                      number
+                      value={formData.lesionDuration}
+                      setValue={(val) => {
+                        const next =
+                          typeof val === "function"
+                            ? val(formData.lesionDuration)
+                            : val;
+                        onChange({ lesionDuration: next });
+                      }}
+                      selectValue={formData.lesionDurationUnit}
+                      setSelectValue={(val) => {
+                        const next =
+                          typeof val === "function"
+                            ? val(formData.lesionDurationUnit)
+                            : val;
+                        onChange({ lesionDurationUnit: next });
+                      }}
+                      placeHolder="enter lesion duration"
+                    />
+                  </Form.Item>
+                </Col>
 
-            <Col xs={24} md={12}>
-              <Form.Item
-                label="Duration of Lesion"
-                required
-                className="mb-3! md:mb-4!"
-              >
-                <InputPicker
-                  number
-                  value={formData.lesionDuration}
-                  setValue={(val) => {
-                    const next =
-                      typeof val === "function"
-                        ? val(formData.lesionDuration)
-                        : val;
-                    onChange({ lesionDuration: next });
-                  }}
-                  selectValue={formData.lesionDurationUnit}
-                  setSelectValue={(val) => {
-                    const next =
-                      typeof val === "function"
-                        ? val(formData.lesionDurationUnit)
-                        : val;
-                    onChange({ lesionDurationUnit: next });
-                  }}
-                  placeHolder="enter lesion duration"
-                />
-              </Form.Item>
-            </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    label="Fitzpatrick skin type"
+                    required
+                    className={formItemClass}
+                  >
+                    <Select
+                      {...fieldSelectProps}
+                      placeholder="choose skin type"
+                      value={formData.fitzpatrickSkinType || undefined}
+                      onChange={(val) => onChange({ fitzpatrickSkinType: val })}
+                    >
+                      {fitzpatrickType.map((type) => (
+                        <Option key={type} value={type}>
+                          {type}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
 
-            <Col xs={24} md={12}>
-              <Form.Item
-                label="Fitzpatrick skin type"
-                required
-                className="mb-3! md:mb-4!"
-              >
-                <Select
-                  {...fieldSelectProps}
-                  placeholder="choose skin type"
-                  value={formData.fitzpatrickSkinType || undefined}
-                  onChange={(val) => onChange({ fitzpatrickSkinType: val })}
-                >
-                  {fitzpatrickType.map((type) => (
-                    <Option key={type} value={type}>
-                      {type}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    label={
+                      <span className="inline-flex items-center gap-1.5">
+                        Does it have Erythema
+                        <Tooltip title="Redness due to capillary dilation">
+                          <QuestionCircleOutlined className="cursor-help text-[#888888]" />
+                        </Tooltip>
+                      </span>
+                    }
+                    required
+                    className={formItemClass}
+                  >
+                    <Select
+                      {...fieldSelectProps}
+                      placeholder="choose option"
+                      value={formData.erythematous || undefined}
+                      onChange={(val) => onChange({ erythematous: val })}
+                    >
+                      <Option value="Yes">Yes</Option>
+                      <Option value="No">No</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
 
-            <Col xs={24} md={12}>
-              <Form.Item
-                label={
-                  <span className="inline-flex items-center gap-1.5">
-                    Does it have Erythema
-                    <Tooltip title="Redness due to capillary dilation">
-                      <QuestionCircleOutlined className="cursor-help text-[#888888]" />
-                    </Tooltip>
-                  </span>
-                }
-                required
-                className="mb-3! md:mb-4!"
-              >
-                <Select
-                  {...fieldSelectProps}
-                  placeholder="choose option"
-                  value={formData.erythematous || undefined}
-                  onChange={(val) => onChange({ erythematous: val })}
-                >
-                  <Option value="Yes">Yes</Option>
-                  <Option value="No">No</Option>
-                </Select>
-              </Form.Item>
-            </Col>
+                <Col span={24}>
+                  <Form.Item
+                    label="Is lesion itchy?"
+                    required
+                    className="mb-0! md:mb-4!"
+                  >
+                    <Select
+                      {...fieldSelectProps}
+                      placeholder="choose option"
+                      value={formData.isLesionItchy || undefined}
+                      onChange={(val) => onChange({ isLesionItchy: val })}
+                    >
+                      <Option value="Yes">Yes</Option>
+                      <Option value="No">No</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
 
-            <Col xs={24} md={12}>
-              <Form.Item
-                label="What is your clinical diagnosis?"
-                required
-                className="mb-0!"
-              >
-                <Select
-                  {...fieldSelectProps}
-                  placeholder="choose option"
-                  showSearch
-                  optionFilterProp="children"
-                  value={formData.clinicalDiagnosis || undefined}
-                  onChange={(val) => onChange({ clinicalDiagnosis: val })}
-                >
-                  {clinicalDiagnosisOptions.map((option) => (
-                    <Option key={option} value={option}>
-                      {option}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
+                <Col span={24}>
+                  <div className="my-4 border-t border-[#C4C4C4] md:my-5" />
+                  <p className="mb-3 text-sm font-medium text-[#121212] md:mb-4 md:text-base">
+                    Additional notes
+                  </p>
+                </Col>
+
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    label="Associated symptoms"
+                    className={formItemClass}
+                  >
+                    <TextArea
+                      placeholder="Describe associated symptoms"
+                      rows={4}
+                      value={formData.associatedSymptoms}
+                      onChange={(e) =>
+                        onChange({ associatedSymptoms: e.target.value })
+                      }
+                      className="dashboard-textarea rounded-[20px]! bg-white! p-3! md:rounded-3xl! md:p-4!"
+                    />
+                  </Form.Item>
+                </Col>
+
+                <Col xs={24} md={12}>
+                  <Form.Item label="Additional information" className="mb-0!">
+                    <TextArea
+                      placeholder="Add any additional information"
+                      rows={4}
+                      value={formData.additionalInformation}
+                      onChange={(e) =>
+                        onChange({ additionalInformation: e.target.value })
+                      }
+                      className="dashboard-textarea rounded-[20px]! bg-white! p-3! md:rounded-3xl! md:p-4!"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Form>
           </div>
         </div>
 
-      <div className="mt-3 shrink-0 flex justify-end md:mt-4">
-        <Button
-          type="primary"
-          loading={loading}
-          disabled={!isComplete}
-          onClick={onSubmit}
-          className={`h-12! w-full rounded-[40px]! text-sm! font-medium! md:h-14! md:w-[405px]! md:text-base! ${
-            isComplete
-              ? "bg-[#121212]! border-[#121212]!"
-              : "bg-[#A0A0A0]! text-white! border-[#A0A0A0]! cursor-not-allowed!"
-          }`}
-        >
-          <span className="inline-flex items-center gap-2">
-            Get AI Diagnosis
-            <ArrowRightOutlined />
-          </span>
-        </Button>
-      </div>
+        <div className="mt-3 shrink-0 flex justify-end md:mt-4">
+          <Button
+            type="primary"
+            loading={loading}
+            disabled={!isComplete}
+            onClick={onSubmit}
+            className={`h-12! w-full rounded-[40px]! text-sm! font-medium! md:h-14! md:w-[405px]! md:text-base! ${
+              isComplete
+                ? "bg-[#121212]! border-[#121212]!"
+                : "bg-[#A0A0A0]! text-white! border-[#A0A0A0]! cursor-not-allowed!"
+            }`}
+          >
+            <span className="inline-flex items-center gap-2">
+              Get AI Diagnosis
+              <ArrowRightOutlined />
+            </span>
+          </Button>
+        </div>
       </div>
     </div>
   );

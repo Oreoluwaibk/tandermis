@@ -147,13 +147,15 @@ const DashboardPage = () => {
       lesion_location: formData.lesionLocation,
       patient_age: formData.patientAge,
       patient_age_unit: formData.patientAgeUnit,
+      patient_sex: formData.patientSex,
       lesion_duration: formData.lesionDuration,
       lesion_duration_unit: formData.lesionDurationUnit,
       fitzpatrick_skin_type: formData.fitzpatrickSkinType,
       erythema: formData.erythematous === "Yes",
-      clinical_diagnosis: formData.clinicalDiagnosis,
-      front_view_path: formData.frontImage,
-      side_view_path: formData.sideImage,
+      itch: formData.isLesionItchy === "Yes",
+      associated_symptoms: formData.associatedSymptoms,
+      additional_information: formData.additionalInformation,
+      front_view_path: formData.lesionImage,
     };
 
     const formDataPayload = toFormData(payload);
