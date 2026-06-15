@@ -64,15 +64,40 @@ body {
     margin-top: 1px;
 }
 
-.ant-upload {
+.input-picker-unit.ant-select {
+    width: auto !important;
+    min-width: 88px;
+}
+
+.input-picker-unit .ant-select-selector {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding-inline: 4px 22px !important;
+}
+
+.input-picker-unit .ant-select-selection-item {
+    text-transform: capitalize;
+    font-size: 12px;
+    color: #2f2f2f;
+    padding-inline-end: 0 !important;
+    line-height: 40px !important;
+}
+
+.input-picker-number.ant-input-number {
     width: 100% !important;
+    flex: 1;
+    min-width: 0;
 }
 
-.width-per-screen {
-    width: 500px;
+.input-picker-number .ant-input-number-input {
+    height: 40px !important;
+    padding-inline: 16px !important;
 }
 
-.dashboard-form .ant-select-selector {
+.dashboard-form .dashboard-field-input.ant-select .ant-select-selector {
     background-color: #ffffff !important;
     border-color: #C4C4C4 !important;
     min-height: 40px !important;
@@ -81,16 +106,12 @@ body {
 }
 
 @media (min-width: 768px) {
-    .dashboard-form .ant-select-selector {
+    .dashboard-form .dashboard-field-input.ant-select .ant-select-selector {
         min-height: 44px !important;
     }
 }
 
-.dashboard-form .ant-select .ant-select-selector {
-    border-radius: 40px !important;
-}
-
-.dashboard-form .ant-select-single .ant-select-selector {
+.dashboard-form .dashboard-field-input.ant-select .ant-select-selector {
     border-radius: 40px !important;
     padding-inline: 16px !important;
 }
@@ -128,6 +149,14 @@ body {
 
 .dashboard-field-input {
     border-radius: 40px !important;
+}
+
+.ant-upload {
+    width: 100% !important;
+}
+
+.width-per-screen {
+    width: 500px;
 }
 
 @media (max-width:768px) {

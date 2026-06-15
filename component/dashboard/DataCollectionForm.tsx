@@ -52,7 +52,7 @@ const DataCollectionForm = ({
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-[#E0E0E0] bg-[#F5F5F5] md:rounded-[40px]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-[#E0E0E0] bg-[#F5F5F5] md:rounded-[40px]">
           <div className="shrink-0 px-3 pt-3 md:px-5 md:pt-4">
             <p className="text-sm font-medium text-[#121212] md:text-lg">
               Patient Personal Data
@@ -198,7 +198,7 @@ const DataCollectionForm = ({
               <Form.Item
                 label={
                   <span className="inline-flex items-center gap-1.5">
-                    Does it have Erythematous
+                    Does it have Erythema
                     <Tooltip title="Redness due to capillary dilation">
                       <QuestionCircleOutlined className="cursor-help text-[#888888]" />
                     </Tooltip>
