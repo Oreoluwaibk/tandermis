@@ -53,10 +53,6 @@ const CaseSummaryCard = ({
         formData.fitzpatrickSkinType,
     },
     {
-      question: "Does it have Erythematous?",
-      answer: formData.erythematous,
-    },
-    {
       question: "Is lesion itchy?",
       answer: formData.isLesionItchy,
     },

@@ -151,7 +151,6 @@ const DashboardPage = () => {
       lesion_duration: formData.lesionDuration,
       lesion_duration_unit: formData.lesionDurationUnit,
       fitzpatrick_skin_type: formData.fitzpatrickSkinType,
-      erythema: formData.erythematous === "Yes",
       itch: formData.isLesionItchy === "Yes",
       associated_symptoms: formData.associatedSymptoms,
       additional_information: formData.additionalInformation,

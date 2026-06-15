@@ -10,7 +10,6 @@ export interface CaseFormData {
   lesionDuration: string | number | null;
   lesionDurationUnit: string;
   fitzpatrickSkinType: string;
-  erythematous: string;
   isLesionItchy: string;
   associatedSymptoms: string;
   additionalInformation: string;
@@ -39,7 +38,6 @@ export const emptyFormData = (): CaseFormData => ({
   lesionDuration: null,
   lesionDurationUnit: "months",
   fitzpatrickSkinType: "",
-  erythematous: "",
   isLesionItchy: "",
   associatedSymptoms: "",
   additionalInformation: "",

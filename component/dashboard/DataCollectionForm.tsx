@@ -3,8 +3,8 @@
 import InputPicker from "@/component/InputPicker";
 import UploadImage from "@/component/UploadImage";
 import { fitzpatrickType, partOfTheBody } from "@/savedInfo";
-import { ArrowRightOutlined, QuestionCircleOutlined } from "@ant-design/icons";
-import { Button, Col, Form, Input, Row, Select, Tooltip } from "antd";
+import { ArrowRightOutlined } from "@ant-design/icons";
+import { Button, Col, Form, Input, Row, Select } from "antd";
 import { RcFile } from "antd/es/upload";
 import React from "react";
 import { CaseFormData } from "./types";
@@ -39,7 +39,6 @@ const DataCollectionForm = ({
     formData.patientSex &&
     formData.lesionDuration &&
     formData.fitzpatrickSkinType &&
-    formData.erythematous &&
     formData.isLesionItchy;
 
   return (
@@ -210,34 +209,9 @@ const DataCollectionForm = ({
 
                 <Col xs={24} md={12}>
                   <Form.Item
-                    label={
-                      <span className="inline-flex items-center gap-1.5">
-                        Does it have Erythema
-                        <Tooltip title="Redness due to capillary dilation">
-                          <QuestionCircleOutlined className="cursor-help text-[#888888]" />
-                        </Tooltip>
-                      </span>
-                    }
-                    required
-                    className={formItemClass}
-                  >
-                    <Select
-                      {...fieldSelectProps}
-                      placeholder="choose option"
-                      value={formData.erythematous || undefined}
-                      onChange={(val) => onChange({ erythematous: val })}
-                    >
-                      <Option value="Yes">Yes</Option>
-                      <Option value="No">No</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-
-                <Col span={24}>
-                  <Form.Item
                     label="Is lesion itchy?"
                     required
-                    className="mb-0! md:mb-4!"
+                    className={formItemClass}
                   >
                     <Select
                       {...fieldSelectProps}
