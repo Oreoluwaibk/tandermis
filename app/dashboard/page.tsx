@@ -13,6 +13,7 @@ import {
   CaseFormData,
   DashboardView,
   emptyFormData,
+  emptyFeedbackData,
   FeedbackData,
   HistoryCase,
 } from "@/component/dashboard/types";
@@ -57,11 +58,7 @@ const DashboardPage = () => {
 
   const [view, setView] = useState<DashboardView>("form");
   const [formData, setFormData] = useState<CaseFormData>(emptyFormData());
-  const [feedback, setFeedback] = useState<FeedbackData>({
-    diagnosisCorrect: "",
-    managementCorrect: "",
-    comments: "",
-  });
+  const [feedback, setFeedback] = useState<FeedbackData>(emptyFeedbackData());
   const [history, setHistory] = useState<HistoryCase[]>([]);
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null);
   const [totalCases, setTotalCases] = useState(0);
@@ -87,7 +84,7 @@ const DashboardPage = () => {
 
   const handleNewCase = () => {
     setFormData(emptyFormData());
-    setFeedback({ diagnosisCorrect: "", managementCorrect: "", comments: "" });
+    setFeedback(emptyFeedbackData());
     setActiveCaseId(null);
     setView("form");
   };

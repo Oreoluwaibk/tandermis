@@ -14,17 +14,31 @@ interface DiagnosisFeedbackProps {
   loading?: boolean;
 }
 
+const yesNoOptions = (
+  <>
+    <Option value="Yes">Yes</Option>
+    <Option value="No">No</Option>
+  </>
+);
+
 const DiagnosisFeedback = ({
   feedback,
   onChange,
   onSubmit,
   loading,
 }: DiagnosisFeedbackProps) => {
+  const diagnosisRequiresCorrection = feedback.diagnosisCorrect === "No";
+  const differentialsRequireCorrection = feedback.differentialsCorrect === "No";
+
   const isComplete =
-    feedback.diagnosisCorrect && feedback.managementCorrect;
+    feedback.diagnosisCorrect &&
+    feedback.differentialsCorrect &&
+    feedback.managementCorrect &&
+    (!diagnosisRequiresCorrection || feedback.correctDiagnosis.trim()) &&
+    (!differentialsRequireCorrection || feedback.correctDifferentials.trim());
 
   return (
-    <div className="w-full rounded-[20px] bg-[#F7F7F8] p-4 md:rounded-[24px] md:p-6">
+    <div className="dashboard-form w-full rounded-[20px] bg-[#F7F7F8] p-4 md:rounded-[24px] md:p-6">
       <h3 className="text-base font-semibold text-[#121212] md:text-lg">
         Diagnosis Feedback
       </h3>
@@ -40,14 +54,74 @@ const DiagnosisFeedback = ({
           </label>
           <Select
             placeholder="select answer"
-            className="w-full"
+            className="w-full dashboard-field-input"
+            size="large"
             value={feedback.diagnosisCorrect || undefined}
-            onChange={(val) => onChange({ diagnosisCorrect: val })}
+            onChange={(val) =>
+              onChange({
+                diagnosisCorrect: val,
+                correctDiagnosis: val === "No" ? feedback.correctDiagnosis : "",
+              })
+            }
           >
-            <Option value="Yes">Yes</Option>
-            <Option value="No">No</Option>
-            <Option value="Partially">Partially</Option>
+            {yesNoOptions}
           </Select>
+          {diagnosisRequiresCorrection && (
+            <div className="mt-3">
+              <label className="mb-2 block text-sm text-[#121212]">
+                What is the correct diagnosis?{" "}
+                <span className="text-[#DC1111]">*</span>
+              </label>
+              <TextArea
+                placeholder="Enter the correct diagnosis"
+                rows={3}
+                value={feedback.correctDiagnosis}
+                onChange={(e) =>
+                  onChange({ correctDiagnosis: e.target.value })
+                }
+                className="dashboard-textarea rounded-[20px]! bg-white! p-3!"
+              />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm text-[#121212]">
+            Are the differentials correct?{" "}
+            <span className="text-[#DC1111]">*</span>
+          </label>
+          <Select
+            placeholder="select answer"
+            className="w-full dashboard-field-input"
+            size="large"
+            value={feedback.differentialsCorrect || undefined}
+            onChange={(val) =>
+              onChange({
+                differentialsCorrect: val,
+                correctDifferentials:
+                  val === "No" ? feedback.correctDifferentials : "",
+              })
+            }
+          >
+            {yesNoOptions}
+          </Select>
+          {differentialsRequireCorrection && (
+            <div className="mt-3">
+              <label className="mb-2 block text-sm text-[#121212]">
+                What are the correct differential diagnoses?{" "}
+                <span className="text-[#DC1111]">*</span>
+              </label>
+              <TextArea
+                placeholder="Enter the correct differential diagnoses"
+                rows={3}
+                value={feedback.correctDifferentials}
+                onChange={(e) =>
+                  onChange({ correctDifferentials: e.target.value })
+                }
+                className="dashboard-textarea rounded-[20px]! bg-white! p-3!"
+              />
+            </div>
+          )}
         </div>
 
         <div>
@@ -57,13 +131,12 @@ const DiagnosisFeedback = ({
           </label>
           <Select
             placeholder="select answer"
-            className="w-full"
+            className="w-full dashboard-field-input"
+            size="large"
             value={feedback.managementCorrect || undefined}
             onChange={(val) => onChange({ managementCorrect: val })}
           >
-            <Option value="Yes">Yes</Option>
-            <Option value="No">No</Option>
-            <Option value="Partially">Partially</Option>
+            {yesNoOptions}
           </Select>
         </div>
 
@@ -76,7 +149,7 @@ const DiagnosisFeedback = ({
             rows={4}
             value={feedback.comments}
             onChange={(e) => onChange({ comments: e.target.value })}
-            className="rounded-2xl!"
+            className="dashboard-textarea rounded-[20px]! bg-white! p-3!"
           />
         </div>
       </div>

@@ -26,9 +26,21 @@ export interface HistoryCase {
 
 export interface FeedbackData {
   diagnosisCorrect: string;
+  differentialsCorrect: string;
+  correctDiagnosis: string;
+  correctDifferentials: string;
   managementCorrect: string;
   comments: string;
 }
+
+export const emptyFeedbackData = (): FeedbackData => ({
+  diagnosisCorrect: "",
+  differentialsCorrect: "",
+  correctDiagnosis: "",
+  correctDifferentials: "",
+  managementCorrect: "",
+  comments: "",
+});
 
 export const emptyFormData = (): CaseFormData => ({
   lesionLocation: "",
