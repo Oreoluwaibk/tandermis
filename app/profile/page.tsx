@@ -1,6 +1,5 @@
 "use client"
 import { useAppDispatch, useAppSelector } from '@/hook'
-import { getContributor } from '@/redux/action/auth'
 import { logoutUser } from '@/redux/reducer/auth/auth'
 import { createErrorMessage } from '@/utils/errorInstance'
 import { getNickNames } from '@/utils/getNickname'

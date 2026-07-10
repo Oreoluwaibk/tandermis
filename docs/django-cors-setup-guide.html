@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Django CORS Setup Guide — Tandermis</title>
+  <style>
+    @media print {
+      body { margin: 0; padding: 20mm; }
+      .no-print { display: none; }
+      pre { page-break-inside: avoid; }
+      h2, h3 { page-break-after: avoid; }
+    }
+    body {
+      font-family: "Segoe UI", Calibri, Arial, sans-serif;
+      line-height: 1.6;
+      color: #222;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+    h1 { font-size: 28px; border-bottom: 2px solid #121212; padding-bottom: 8px; }
+    h2 { font-size: 20px; margin-top: 32px; color: #121212; }
+    h3 { font-size: 16px; margin-top: 24px; }
+    p, li { font-size: 14px; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    pre {
+      background: #f8f8f8;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+    th, td { border: 1px solid #ddd; padding: 10px 12px; text-align: left; }
+    th { background: #f0f0f0; }
+    .subtitle { color: #666; font-size: 16px; margin-top: -8px; }
+    .note { background: #fff8e6; border-left: 4px solid #f5a623; padding: 12px 16px; margin: 16px 0; font-size: 14px; }
+    .warn { background: #fdecea; border-left: 4px solid #dc1111; padding: 12px 16px; margin: 16px 0; font-size: 14px; }
+    ul.checklist { list-style: none; padding-left: 0; }
+    ul.checklist li::before { content: "☐ "; }
+    .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 12px; color: #888; }
+    .no-print {
+      background: #121212;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+    .no-print button {
+      background: white;
+      color: #121212;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-left: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print">
+    To save as PDF: click <strong>Save as PDF</strong> below, or use <kbd>Ctrl+P</kbd> → “Save as PDF”.
+    <button onclick="window.print()">Save as PDF</button>
+  </div>
+
+  <h1>How to Set CORS Origin in Django</h1>
+  <p class="subtitle"><strong>Tandermis — Backend CORS Configuration Guide</strong></p>
+
+  <p>This guide explains how to allow your Next.js frontend to call your Django API without browser CORS errors.</p>
+
+  <h2>Overview</h2>
+  <p>CORS (Cross-Origin Resource Sharing) controls which websites can make requests to your API from the browser. When your frontend runs on a different origin than your backend (e.g. <code>http://localhost:3000</code> calling <code>https://tandermis.pythonanywhere.com</code>), Django must explicitly allow that origin.</p>
+  <p>The standard solution is the <strong>django-cors-headers</strong> package.</p>
+
+  <h2>Step 1: Install django-cors-headers</h2>
+  <pre>pip install django-cors-headers</pre>
+  <p>Add to <code>requirements.txt</code>:</p>
+  <pre>django-cors-headers>=4.0.0</pre>
+
+  <h2>Step 2: Add to INSTALLED_APPS</h2>
+  <p>Open your Django <code>settings.py</code>:</p>
+  <pre>INSTALLED_APPS = [
+    ...
+    "corsheaders",
+    ...
+]</pre>
+
+  <h2>Step 3: Add the Middleware (order matters)</h2>
+  <p>Add <code>CorsMiddleware</code> as high as possible, right after <code>SecurityMiddleware</code>:</p>
+  <pre>MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # add this line
+    "django.middleware.common.CommonMiddleware",
+    ...
+]</pre>
+  <div class="note"><strong>Important:</strong> If CorsMiddleware is placed too low, CORS headers may not be applied correctly.</div>
+
+  <h2>Step 4: Set Allowed Origins</h2>
+  <pre>CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",       # Next.js local dev
+    "http://127.0.0.1:3000",       # alternate local dev
+    "https://tandermis.com",       # production frontend
+    "https://www.tandermis.com",   # if you use www
+]</pre>
+  <h3>Rules for origins</h3>
+  <ul>
+    <li>Use the exact origin: scheme + host + port (if non-default).</li>
+    <li><strong>No trailing slash</strong> — use <code>https://example.com</code>, not <code>https://example.com/</code>.</li>
+    <li>Include both http and https variants if you use both.</li>
+    <li>Do not use wildcards in <code>CORS_ALLOWED_ORIGINS</code>.</li>
+  </ul>
+
+  <h2>Step 5 (Optional): Allow Credentials</h2>
+  <pre>CORS_ALLOW_CREDENTIALS = True</pre>
+  <p>Only needed if you send cookies or session auth. For Bearer token (JWT) auth, this is usually not required.</p>
+
+  <h2>Step 6: Restart Django</h2>
+  <table>
+    <tr><th>Environment</th><th>Action</th></tr>
+    <tr><td>Local</td><td>Stop and run <code>python manage.py runserver</code></td></tr>
+    <tr><td>PythonAnywhere</td><td>Reload the web app from the dashboard</td></tr>
+  </table>
+
+  <h2>Recommended Setup for Tandermis</h2>
+  <pre>INSTALLED_APPS = [
+    ...
+    "corsheaders",
+    ...
+]
+
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    ...
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://tandermis.com",
+    "https://www.tandermis.com",
+]</pre>
+
+  <h2>What NOT to Do in Production</h2>
+  <div class="warn">
+    <code>CORS_ALLOW_ALL_ORIGINS = True</code> — Avoid in production. This allows any website to call your API from a user's browser.
+  </div>
+
+  <h2>Troubleshooting</h2>
+  <ol>
+    <li>Check the browser error — the blocked origin must match <code>CORS_ALLOWED_ORIGINS</code> exactly.</li>
+    <li>Verify middleware order — CorsMiddleware should be near the top.</li>
+    <li>Reload PythonAnywhere after settings changes.</li>
+    <li>Ensure no custom middleware or proxy strips CORS headers.</li>
+  </ol>
+  <p><strong>Example error:</strong></p>
+  <pre>Access to XMLHttpRequest at 'https://tandermis.pythonanywhere.com/auth/login'
+from origin 'http://localhost:3000' has been blocked by CORS policy</pre>
+  <p><strong>Fix:</strong> Add <code>"http://localhost:3000"</code> to <code>CORS_ALLOWED_ORIGINS</code>.</p>
+
+  <h2>Quick Checklist</h2>
+  <ul class="checklist">
+    <li>pip install django-cors-headers</li>
+    <li>Add "corsheaders" to INSTALLED_APPS</li>
+    <li>Add CorsMiddleware near the top of MIDDLEWARE</li>
+    <li>Set CORS_ALLOWED_ORIGINS with your frontend URL(s)</li>
+    <li>Restart Django / reload PythonAnywhere</li>
+    <li>Test login or signup from the frontend</li>
+  </ul>
+
+  <h2>References</h2>
+  <ul>
+    <li>django-cors-headers: https://github.com/adamchainz/django-cors-headers</li>
+    <li>MDN CORS: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS</li>
+  </ul>
+
+  <div class="footer">
+    Document generated for Tandermis frontend/backend integration.
+  </div>
+
+</body>
+</html>

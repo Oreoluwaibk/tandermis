@@ -2,19 +2,28 @@
 import RoundBtn from "@/component/RoundBtn";
 import Image from "next/image";
 import { ArrowRightOutlined } from "@ant-design/icons";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAppSelector } from "@/hook";
-import { useTransition } from "react";
+import { Suspense, useEffect, useTransition } from "react";
 
-export default function Home() {
+function HomeContent() {
   const { isAuthenticated } = useAppSelector(state => state.auth);
   const [ isPending, startTransition ] = useTransition();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const uid = searchParams.get("uid");
+    const token = searchParams.get("token");
+    if (uid && token) {
+      router.replace(`/auth/reset-password?uid=${encodeURIComponent(uid)}&token=${encodeURIComponent(token)}`);
+    }
+  }, [searchParams, router]);
 
   const handleRedirect = () => {
     if(isAuthenticated) {
       startTransition(() => {
-        router.push('/form');
+        router.push('/dashboard');
       })
     }else {
       startTransition(() => {
@@ -55,5 +64,13 @@ export default function Home() {
   </main>
 </div>
 
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
   );
 }

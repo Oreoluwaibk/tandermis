@@ -16,12 +16,43 @@ export interface CaseFormData {
   lesionImage: RcFile | string;
 }
 
+export interface DifferentialDiagnosis {
+  name: string;
+  reasoning: string;
+}
+
+export interface ManagementStep {
+  step_number: number;
+  description: string;
+  details: string[];
+}
+
+export interface ModelDiagnosisResult {
+  id: number;
+  most_likely_diagnosis: string;
+  differential_diagnoses: DifferentialDiagnosis[];
+  next_steps_in_management: ManagementStep[];
+  important_considerations: string[];
+}
+
 export interface HistoryCase {
   id: string;
   date: string;
   label: string;
   formData: CaseFormData;
-  status: "processing" | "completed";
+  status: "processing" | "completed" | "failed";
+  datasetId?: number;
+  diagnosis?: ModelDiagnosisResult;
+  error?: string;
+  feedbackSubmitted?: boolean;
+}
+
+export interface ReviewerFeedbackPayload {
+  id: number;
+  correct_diagnosis: string;
+  correct_differential_diagnoses: string;
+  reviewer_comment?: string;
+  is_model_next_steps_in_management_correct: boolean;
 }
 
 export interface FeedbackData {

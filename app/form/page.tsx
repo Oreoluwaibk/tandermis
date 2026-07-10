@@ -5,7 +5,8 @@ import PersonalData from '@/component/form/PersonalData';
 import ProgressBar from '@/component/ProgressBar';
 import RoundBtn from '@/component/RoundBtn';
 import { useAppSelector } from '@/hook';
-import { submitResponse } from '@/redux/action/auth';
+import { submitModelDiagnosis } from '@/services/dermatology';
+import { fileToBase64 } from '@/utils/imageToBase64';
 import { IPersonalData, skinLesionOptions, SkinOptions } from '@/savedInfo';
 import { toFormData } from '@/utils/converters';
 import { createErrorMessage } from '@/utils/errorInstance';
@@ -371,27 +372,30 @@ const Page = () => {
     }
   };
 
-  const handleSubmit = (value: any) => {
-    const payload = {
-      ...value.personalInfo,
-      ...value.lesionProperties,
-      patient_age_unit: ageType,
-      lesion_duration_unit: durationType,
-      front_view_path: frontImage,
-      side_view_path: backImage,
-    }
-
-    const formData = toFormData(payload)
-    setLoading(true)
-    submitResponse(formData)
-    .then((res) => {
-      if(res.status === 200 || res.status === 201) {
+  const handleSubmit = async (value: any) => {
+    setLoading(true);
+    try {
+      const frontBase64 = frontImage
+        ? await fileToBase64(frontImage as Blob)
+        : "";
+      const payload = {
+        image: frontBase64,
+        age: `${value.personalInfo?.patient_age ?? ""} ${ageType}`,
+        sex: value.personalInfo?.patient_sex ?? "",
+        lesion_duration: `${value.lesionProperties?.lesion_duration ?? ""} ${durationType}`,
+        body_part: value.lesionProperties?.body_part ?? "",
+        itch: value.lesionProperties?.itch ? "Yes" : "No",
+        associated_symptoms: value.lesionProperties?.associated_symptoms,
+        additional_information: value.lesionProperties?.additional_information,
+        fitzpatrick_skin_type: value.personalInfo?.fitzpatrick_skin_type ?? "",
+      };
+      const res = await submitModelDiagnosis(payload);
+      if (res.status === 202) {
         setLoading(false);
         modal.success({
           title: "Success",
-          content: "Your submission is successful!",
+          content: res.data.message || "Your submission is being processed!",
           onOk: () => {
-            setLoading(false);
             localStorage.removeItem("dermaFormProgress");
             setSubmitted(true);
             setSteps(0);
@@ -399,12 +403,10 @@ const Page = () => {
             setTitle(titleArray[0]);
             resetFields();
             setProgress(0);
-            // router.push("/");
           },
         });
       }
-    })
-    .catch(err => {
+    } catch (err: any) {
       setLoading(false);
       modal.error({
         title: "Error",
@@ -413,7 +415,7 @@ const Page = () => {
           : err.message,
         onOk: () => setLoading(false),
       });
-    })
+    }
   }
 
   // if(!isAuthenticated) return null;

@@ -16,16 +16,23 @@ import {
   emptyFeedbackData,
   FeedbackData,
   HistoryCase,
+  ModelDiagnosisResult,
 } from "@/component/dashboard/types";
 import { useAppDispatch, useAppSelector } from "@/hook";
-import { submitResponse } from "@/redux/action/auth";
-import { logoutUser } from "@/redux/reducer/auth/auth";
-import { toFormData } from "@/utils/converters";
+import { apiLogout } from "@/redux/action/auth";
+import { logoutUser, selectedRefresh } from "@/redux/reducer/auth/auth";
+import {
+  buildDiagnosisPayload,
+  buildReviewerFeedbackPayload,
+  pollDiagnosisStatus,
+  submitModelDiagnosis,
+  submitReviewerFeedback,
+} from "@/services/dermatology";
 import { createErrorMessage } from "@/utils/errorInstance";
 import { App, Button } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 const HISTORY_KEY = "tandermis_dashboard_history";
 const CASES_COUNT_KEY = "tandermis_cases_count";
@@ -53,20 +60,26 @@ const saveHistory = (history: HistoryCase[]) => {
 const DashboardPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { message, modal } = App.useApp();
+  const { modal } = App.useApp();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const refreshToken = useAppSelector(selectedRefresh);
 
   const [view, setView] = useState<DashboardView>("form");
   const [formData, setFormData] = useState<CaseFormData>(emptyFormData());
   const [feedback, setFeedback] = useState<FeedbackData>(emptyFeedbackData());
   const [history, setHistory] = useState<HistoryCase[]>([]);
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null);
+  const [activeDiagnosis, setActiveDiagnosis] = useState<
+    ModelDiagnosisResult | undefined
+  >();
   const [totalCases, setTotalCases] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const stopPollingRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     setHistory(loadHistory());
@@ -75,17 +88,26 @@ const DashboardPage = () => {
   }, []);
 
   useEffect(() => {
-    // if (!isAuthenticated) router.push("/auth/login");
+    if (!isAuthenticated) router.push("/auth/login");
   }, [isAuthenticated, router]);
+
+  useEffect(
+    () => () => {
+      stopPollingRef.current?.();
+    },
+    []
+  );
 
   const updateFormData = useCallback((partial: Partial<CaseFormData>) => {
     setFormData((prev) => ({ ...prev, ...partial }));
   }, []);
 
   const handleNewCase = () => {
+    stopPollingRef.current?.();
     setFormData(emptyFormData());
     setFeedback(emptyFeedbackData());
     setActiveCaseId(null);
+    setActiveDiagnosis(undefined);
     setView("form");
   };
 
@@ -94,7 +116,21 @@ const DashboardPage = () => {
     if (!selected) return;
     setActiveCaseId(id);
     setFormData(selected.formData);
-    setView(selected.status === "processing" ? "processing" : "result");
+    setActiveDiagnosis(selected.diagnosis);
+    setFeedback(emptyFeedbackData());
+    if (selected.status === "processing") {
+      setView("processing");
+    } else if (selected.status === "failed") {
+      modal.error({
+        title: "Diagnosis failed",
+        content: selected.error || "Background execution error",
+      });
+      setView("form");
+    } else if (selected.feedbackSubmitted) {
+      setView("feedback-success");
+    } else {
+      setView("result");
+    }
   };
 
   const handleDeleteCase = (id: string) => {
@@ -105,12 +141,20 @@ const DashboardPage = () => {
   };
 
   const completeProcessing = useCallback(
-    (caseId: string, historyList: HistoryCase[]) => {
+    (
+      caseId: string,
+      historyList: HistoryCase[],
+      diagnosis?: ModelDiagnosisResult
+    ) => {
       const completedHistory = historyList.map((h) =>
-        h.id === caseId ? { ...h, status: "completed" as const } : h
+        h.id === caseId
+          ? { ...h, status: "completed" as const, diagnosis }
+          : h
       );
       setHistory(completedHistory);
       saveHistory(completedHistory);
+      setActiveDiagnosis(diagnosis);
+      setFeedback(emptyFeedbackData());
       setTotalCases((prev) => {
         const count = prev + 1;
         localStorage.setItem(CASES_COUNT_KEY, String(count));
@@ -122,7 +166,46 @@ const DashboardPage = () => {
     []
   );
 
-  const handleGetDiagnosis = () => {
+  const failProcessing = useCallback(
+    (caseId: string, historyList: HistoryCase[], error: string) => {
+      const failedHistory = historyList.map((h) =>
+        h.id === caseId ? { ...h, status: "failed" as const, error } : h
+      );
+      setHistory(failedHistory);
+      saveHistory(failedHistory);
+      modal.error({ title: "Diagnosis failed", content: error });
+      setView("form");
+      setActiveCaseId(null);
+      setSubmitting(false);
+    },
+    [modal]
+  );
+
+  const startPolling = useCallback(
+    (datasetId: number, caseId: string, historyList: HistoryCase[]) => {
+      stopPollingRef.current?.();
+      stopPollingRef.current = pollDiagnosisStatus(datasetId, (data) => {
+        if (data.status === "processing") return;
+
+        if (data.status === "completed") {
+          const { status: _, ...diagnosis } = data;
+          completeProcessing(caseId, historyList, diagnosis);
+          stopPollingRef.current?.();
+          return;
+        }
+
+        failProcessing(
+          caseId,
+          historyList,
+          data.error || "Background execution error"
+        );
+        stopPollingRef.current?.();
+      });
+    },
+    [completeProcessing, failProcessing]
+  );
+
+  const handleGetDiagnosis = async () => {
     const caseId = crypto.randomUUID();
     const label = formatCaseLabel(new Date());
     const newCase: HistoryCase = {
@@ -137,63 +220,92 @@ const DashboardPage = () => {
     setHistory(updatedHistory);
     saveHistory(updatedHistory);
     setActiveCaseId(caseId);
+    setActiveDiagnosis(undefined);
     setView("processing");
     setSubmitting(true);
 
-    const payload = {
-      lesion_location: formData.lesionLocation,
-      patient_age: formData.patientAge,
-      patient_age_unit: formData.patientAgeUnit,
-      patient_sex: formData.patientSex,
-      lesion_duration: formData.lesionDuration,
-      lesion_duration_unit: formData.lesionDurationUnit,
-      fitzpatrick_skin_type: formData.fitzpatrickSkinType,
-      itch: formData.isLesionItchy === "Yes",
-      associated_symptoms: formData.associatedSymptoms,
-      additional_information: formData.additionalInformation,
-      front_view_path: formData.lesionImage,
-    };
+    try {
+      const payload = await buildDiagnosisPayload(formData);
+      const res = await submitModelDiagnosis(payload);
 
-    const formDataPayload = toFormData(payload);
-
-    const processingTimer = setTimeout(() => {
-      completeProcessing(caseId, updatedHistory);
-    }, 5000);
-
-    // submitResponse(formDataPayload)
-    //   .then((res) => {
-    //     if (res.status === 200 || res.status === 201) {
-    //       clearTimeout(processingTimer);
-    //       completeProcessing(caseId, updatedHistory);
-    //     }
-    //   })
-    //   .catch((err) => {
-    //     clearTimeout(processingTimer);
-    //     modal.error({
-    //       title: "Error",
-    //       content: err?.response
-    //         ? createErrorMessage(err.response.data)
-    //         : err.message,
-    //     });
-    //     setView("form");
-    //     const reverted = updatedHistory.filter((h) => h.id !== caseId);
-    //     setHistory(reverted);
-    //     saveHistory(reverted);
-    //     setActiveCaseId(null);
-    //     setSubmitting(false);
-    //   });
+      if (res.status === 202) {
+        const datasetId = res.data.id;
+        const withDatasetId = updatedHistory.map((h) =>
+          h.id === caseId ? { ...h, datasetId } : h
+        );
+        setHistory(withDatasetId);
+        saveHistory(withDatasetId);
+        startPolling(datasetId, caseId, withDatasetId);
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: unknown }; message?: string };
+      modal.error({
+        title: "Error",
+        content: error?.response
+          ? createErrorMessage(error.response.data)
+          : error.message,
+      });
+      const reverted = updatedHistory.filter((h) => h.id !== caseId);
+      setHistory(reverted);
+      saveHistory(reverted);
+      setActiveCaseId(null);
+      setView("form");
+      setSubmitting(false);
+    }
   };
 
-  const handleSubmitFeedback = () => {
+  const handleSubmitFeedback = async () => {
+    const activeCase = history.find((h) => h.id === activeCaseId);
+    const diagnosis = activeDiagnosis ?? activeCase?.diagnosis;
+    const datasetId = activeCase?.datasetId ?? diagnosis?.id;
+
+    if (!datasetId || !diagnosis) {
+      modal.error({
+        title: "Unable to submit feedback",
+        content: "Missing diagnosis data for this case. Please try again.",
+      });
+      return;
+    }
+
     setFeedbackLoading(true);
-    setTimeout(() => {
+    try {
+      const payload = buildReviewerFeedbackPayload(
+        datasetId,
+        feedback,
+        diagnosis
+      );
+      const res = await submitReviewerFeedback(payload);
+
+      if (res.status === 200 || res.status === 201 || res.status === 202) {
+        const updatedHistory = history.map((h) =>
+          h.id === activeCaseId ? { ...h, feedbackSubmitted: true } : h
+        );
+        setHistory(updatedHistory);
+        saveHistory(updatedHistory);
+        setView("feedback-success");
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: unknown }; message?: string };
+      modal.error({
+        title: "Feedback submission failed",
+        content: error?.response
+          ? createErrorMessage(error.response.data)
+          : error.message,
+      });
+    } finally {
       setFeedbackLoading(false);
-      setView("feedback-success");
-    }, 800);
+    }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setLogoutLoading(true);
+    try {
+      if (refreshToken) {
+        await apiLogout(refreshToken);
+      }
+    } catch {
+      // Still clear local session if logout API fails
+    }
     dispatch(logoutUser());
     setLogoutLoading(false);
     setLogoutOpen(false);
@@ -225,7 +337,10 @@ const DashboardPage = () => {
     if (view === "result") {
       return (
         <ResultViewLayout formData={formData}>
-          <DiagnosisResultCard totalCases={totalCases} />
+          <DiagnosisResultCard
+            totalCases={totalCases}
+            diagnosis={activeDiagnosis}
+          />
           <DiagnosisFeedback
             feedback={feedback}
             onChange={(partial) =>
@@ -241,7 +356,10 @@ const DashboardPage = () => {
     if (view === "feedback-success") {
       return (
         <ResultViewLayout formData={formData}>
-          <DiagnosisResultCard totalCases={totalCases} />
+          <DiagnosisResultCard
+            totalCases={totalCases}
+            diagnosis={activeDiagnosis}
+          />
           <FeedbackSuccess onSubmitAnother={handleNewCase} />
         </ResultViewLayout>
       );

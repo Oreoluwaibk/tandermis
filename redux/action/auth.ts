@@ -1,107 +1,71 @@
-import axiosInstance from "@/utils/axiosConfig";
-import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-// import axiosInstance from "../../../utils/axiosConfig";
+import axiosInstance from "@/utils/axiosConfig";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-export interface loginData {
-    email: string;
-    password: string;
+export interface LoginData {
+  email: string;
+  password: string;
 }
+
 export interface IUser {
-    "id": number;
-    "email": string;
-    "first_name": string;
-    "last_name": string;
+  id: number;
+  email: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  job_title?: string;
+  workplace_name?: string;
 }
 
-export interface signinReducer {
-    user: IUser | null
-    isAuthenticated: boolean;
-    token: string | null
-    refresh: string | null
-    loading: boolean;
-    success: boolean;
-    error: any;
-}
-export interface registerPayload {
-    email: string;
-    password: string;
-    first_name: string;
-    last_name: string;
-};
-
-export interface User {};
-
-export const login = async (data:loginData) => {
-    const response = await axios.post(`${baseUrl}/accounts/login/`, data);
-    return Promise.resolve(response);
+export interface SigninReducer {
+  user: IUser | null;
+  isAuthenticated: boolean;
+  token: string | null;
+  refresh: string | null;
+  loading: boolean;
+  success: boolean;
+  error: unknown;
 }
 
-export const logoutUser = async () => {
-    const url = `/Authentication/logout`;
-    const response = await axiosInstance.post(url, {});
-
-    return Promise.resolve(response);
+export interface SignupPayload {
+  first_name: string;
+  last_name: string;
+  username: string;
+  email: string;
+  password: string;
+  phone_number: string;
+  country_code: string;
+  job_title: string;
+  workplace_name: string;
+  address_line_1: string;
+  address_line_2?: string;
+  local_government_area: string;
+  state: string;
+  country: string;
 }
 
-export const loginAction = createAsyncThunk(
-  "auth/login",
-  async (data: { token: {access: string; refresh: string}, user: User }) => {
-    const { token, user,  } = data;
+export const login = (data: LoginData) =>
+  axios.post(`${baseUrl}/auth/login`, data);
 
-    // ✅ Persist data
-    localStorage.setItem("tandermis_user", JSON.stringify(user));
-    
-    localStorage.setItem(
-      "tandermis_token",
-      JSON.stringify(token.access)
-    );
+export const registerUser = (data: SignupPayload) =>
+  axios.post(`${baseUrl}/auth/signup`, data);
 
-    localStorage.setItem(
-      "tandermis_refresh_token",
-      JSON.stringify(token.refresh)
-    );
+export const createContributor = (accessToken: string) =>
+  axios.post(
+    `${baseUrl}/api/contributor`,
+    {},
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
 
-    // ✅ Return payload for Redux
-    return {
-      token: token.access,
-      user,
-      refresh: token.refresh
-    };
-  }
-);
+export const apiLogout = (refresh: string) =>
+  axiosInstance.post("/auth/logout", { refresh });
 
-export const registerUser = async (data: registerPayload) => {
-    const response = await axios.post(`${baseUrl}/accounts/signup/`, data);
-    return Promise.resolve(response);
-}
+export const requestPasswordReset = (data: { email: string }) =>
+  axios.post(`${baseUrl}/auth/request-password-reset`, data);
 
-
-export const changePassword = async(data:{ email: string }) => {
-    const response = await axios.post(`${baseUrl}/accounts/password-reset/`, data);
-    return Promise.resolve(response);
-}
-
-export const resetPassword = async(data: {newPassword: string, token: string, email: string }) => {
-    const response = await axios.post(`${baseUrl}/accounts/password-reset/`, data);
-    return Promise.resolve(response);
-}
-
-export const getContributor = async() => {
-    const response = await axiosInstance.get(`${baseUrl}/contributor/`,);
-    return Promise.resolve(response);
-}
-
-
-export const submitResponse = async(data: FormData) => {
-    const url = `/derm-cases/`;
-    const response = await axiosInstance.post(url, data, {
-        headers: {
-            "Content-Type": "multi-part/formdata"
-        }
-    });
-
-    return Promise.resolve(response);
-}
+export const resetPasswordApi = (data: {
+  uid: string;
+  token: string;
+  new_password: string;
+}) => axios.post(`${baseUrl}/auth/reset-password`, data);

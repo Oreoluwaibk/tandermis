@@ -1,0 +1,117 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0 Calibri;}{\f1 Courier New;}}
+{\colortbl;\red18\green18\blue18;\red102\green102\blue102;\red220\green17\blue17;}
+
+\f0\fs28\b How to Set CORS Origin in Django\b0\fs22\par
+\fs20\b Tandermis \emdash  Backend CORS Configuration Guide\b0\fs22\par
+\par
+This guide explains how to allow your Next.js frontend to call your Django API without browser CORS errors.\par
+\par
+
+\fs24\b Step 1: Install django-cors-headers\b0\fs22\par
+\par
+Run in your Django project environment:\par
+\par
+\f1 pip install django-cors-headers\f0\par
+\par
+Add to requirements.txt:\par
+\f1 django-cors-headers>=4.0.0\f0\par
+\par
+
+\fs24\b Step 2: Add to INSTALLED_APPS\b0\fs22\par
+\par
+Open settings.py and add:\par
+\par
+\f1 INSTALLED_APPS = [\par
+    ...\par
+    "corsheaders",\par
+    ...\par
+]\f0\par
+\par
+
+\fs24\b Step 3: Add the Middleware (order matters)\b0\fs22\par
+\par
+Add CorsMiddleware as high as possible, right after SecurityMiddleware:\par
+\par
+\f1 MIDDLEWARE = [\par
+    "django.middleware.security.SecurityMiddleware",\par
+    "corsheaders.middleware.CorsMiddleware",\par
+    "django.middleware.common.CommonMiddleware",\par
+    ...\par
+]\f0\par
+\par
+\b Important:\b0  If CorsMiddleware is placed too low, CORS headers may not be applied correctly.\par
+\par
+
+\fs24\b Step 4: Set Allowed Origins\b0\fs22\par
+\par
+\f1 CORS_ALLOWED_ORIGINS = [\par
+    "http://localhost:3000",\par
+    "http://127.0.0.1:3000",\par
+    "https://tandermis.com",\par
+    "https://www.tandermis.com",\par
+]\f0\par
+\par
+\b Rules:\b0\par
+\bullet  Use the exact origin (scheme + host + port).\par
+\bullet  No trailing slash.\par
+\bullet  Do not use wildcards.\par
+\par
+
+\fs24\b Step 5 (Optional): Allow Credentials\b0\fs22\par
+\par
+\f1 CORS_ALLOW_CREDENTIALS = True\f0\par
+\par
+Only needed for cookies/session auth. Not required for Bearer JWT tokens.\par
+\par
+
+\fs24\b Step 6: Restart Django\b0\fs22\par
+\par
+\b Local:\b0  python manage.py runserver\par
+\b PythonAnywhere:\b0  Reload the web app from the dashboard\par
+\par
+
+\fs24\b Recommended Setup for Tandermis\b0\fs22\par
+\par
+\f1 CORS_ALLOWED_ORIGINS = [\par
+    "http://localhost:3000",\par
+    "http://127.0.0.1:3000",\par
+    "https://tandermis.com",\par
+    "https://www.tandermis.com",\par
+]\f0\par
+\par
+
+\fs24\b What NOT to Do in Production\b0\fs22\par
+\par
+\cf3 CORS_ALLOW_ALL_ORIGINS = True\cf0  \emdash  Avoid in production. Allows any website to call your API.\par
+\par
+
+\fs24\b Troubleshooting\b0\fs22\par
+\par
+1. Check the browser error \emdash  origin must match CORS_ALLOWED_ORIGINS exactly.\par
+2. Verify middleware order.\par
+3. Reload PythonAnywhere after settings changes.\par
+4. Ensure no proxy strips CORS headers.\par
+\par
+\b Example error:\b0\par
+\f1 Access blocked by CORS policy from origin 'http://localhost:3000'\f0\par
+\b Fix:\b0  Add "http://localhost:3000" to CORS_ALLOWED_ORIGINS.\par
+\par
+
+\fs24\b Quick Checklist\b0\fs22\par
+\par
+\bullet  pip install django-cors-headers\par
+\bullet  Add "corsheaders" to INSTALLED_APPS\par
+\bullet  Add CorsMiddleware near top of MIDDLEWARE\par
+\bullet  Set CORS_ALLOWED_ORIGINS\par
+\bullet  Restart Django / reload PythonAnywhere\par
+\bullet  Test login or signup from frontend\par
+\par
+
+\fs24\b References\b0\fs22\par
+\par
+\bullet  https://github.com/adamchainz/django-cors-headers\par
+\bullet  https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS\par
+\par
+\cf2\fs18 Document generated for Tandermis frontend/backend integration.\cf0\fs22\par
+}
