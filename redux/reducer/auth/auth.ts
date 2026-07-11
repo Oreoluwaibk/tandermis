@@ -20,7 +20,11 @@ export const loginAction = createAsyncThunk(
     const { token, user = null } = data;
 
     if (isBrowser) {
-      setAuthStorage({ access: token.access, refresh: token.refresh, user });
+      setAuthStorage({
+        access: token.access,
+        refresh: token.refresh,
+        user,
+      });
     }
 
     return {

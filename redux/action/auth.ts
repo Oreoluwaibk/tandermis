@@ -18,6 +18,20 @@ export interface IUser {
   workplace_name?: string;
 }
 
+export interface LoginResponse {
+  access: string;
+  refresh: string;
+  user: IUser;
+}
+
+export interface SignupResponse {
+  user: IUser;
+  tokens: {
+    access: string;
+    refresh: string;
+  };
+}
+
 export interface SigninReducer {
   user: IUser | null;
   isAuthenticated: boolean;
@@ -46,10 +60,10 @@ export interface SignupPayload {
 }
 
 export const login = (data: LoginData) =>
-  axios.post(`${baseUrl}/auth/login`, data);
+  axios.post<LoginResponse>(`${baseUrl}/auth/login`, data);
 
 export const registerUser = (data: SignupPayload) =>
-  axios.post(`${baseUrl}/auth/signup`, data);
+  axios.post<SignupResponse>(`${baseUrl}/auth/signup`, data);
 
 export const createContributor = (accessToken: string) =>
   axios.post(

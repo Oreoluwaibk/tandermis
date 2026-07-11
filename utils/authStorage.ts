@@ -1,3 +1,5 @@
+import { IUser } from "@/redux/action/auth";
+
 const USER_KEY = "tandermis_user";
 const TOKEN_KEY = "tandermis_token";
 const REFRESH_KEY = "tandermis_refresh_token";
@@ -33,13 +35,15 @@ export const getStoredUser = <T>() => {
 export const setAuthStorage = (data: {
   access: string;
   refresh: string;
-  user?: unknown | null;
+  user?: IUser | null;
 }) => {
   if (!isBrowser) return;
   localStorage.setItem(TOKEN_KEY, data.access);
   localStorage.setItem(REFRESH_KEY, data.refresh);
   if (data.user) {
     localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  } else {
+    localStorage.removeItem(USER_KEY);
   }
 };
 

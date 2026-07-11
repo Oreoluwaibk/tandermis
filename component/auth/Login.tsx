@@ -32,7 +32,7 @@ const Login = () => {
                     access: res.data.access,
                     refresh: res.data.refresh,
                   },
-                  user: null,
+                  user: res.data.user,
                 })
               ).then(() => {
                 setLoading(false);
