@@ -176,3 +176,23 @@ body {
         width: 300;
     }
 }
+
+.auth-screen-footer {
+    border-top: 1px solid rgba(232, 232, 232, 0.85);
+    background: linear-gradient(
+        to top,
+        rgba(255, 255, 255, 0.92) 0%,
+        rgba(255, 255, 255, 0.75) 100%
+    );
+    backdrop-filter: blur(6px);
+}
+
+.auth-form-panel .ant-form-item-label > label {
+    font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+    .auth-form-panel .ant-form-item-label > label {
+        font-size: 0.9375rem;
+    }
+}

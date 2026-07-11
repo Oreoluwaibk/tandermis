@@ -84,12 +84,12 @@ const Signup = () => {
   };
 
   return (
-    <Container padding={30}>
+    <Container>
       <div className="w-full">
-        <p className="text-[#121212] text-[28px] font-semibold text-center">
+        <p className="text-center text-xl font-semibold text-[#121212] sm:text-2xl lg:text-[28px]">
           Sign Up with Email
         </p>
-        <p className="text-base text-[#4F4F4F] text-center">
+        <p className="mt-1 text-center text-sm text-[#4F4F4F] sm:text-base">
           Register to save and record your clinical contributions
         </p>
 
@@ -282,7 +282,7 @@ const Signup = () => {
             </Button>
           </FormItem>
 
-          <p className="text-base">
+          <p className="text-base text-center">
             Already have an account?{" "}
             <Link href="/auth/login" className="text-[#121212]! font-semibold">
               Sign in

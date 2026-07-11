@@ -49,17 +49,15 @@ const ForgotPassword = () => {
   };
 
   return (
-    <Container padding={30}>
+    <Container>
       {!successful && (
         <div className="w-full">
-          <p className="text-[#121212] text-[28px] font-semibold text-center mb-2">
+          <p className="mb-2 text-center text-xl font-semibold text-[#121212] sm:text-2xl lg:text-[28px]">
             Reset password
           </p>
-          <p className="text-base text-[#4F4F4F] text-center">
-            Forgot your password and can&apos;t remember it?{" "}
-          </p>
-          <p className="text-base text-[#4F4F4F] text-center">
-            Enter your email address to reset your password
+          <p className="text-center text-sm text-[#4F4F4F] sm:text-base">
+            Forgot your password and can&apos;t remember it? Enter your email
+            address to reset your password
           </p>
 
           <Form form={form} layout="vertical" onFinish={handleSubmit}>
@@ -104,10 +102,10 @@ const ForgotPassword = () => {
           <div className="flex items-center justify-center mb-5">
             <Image src="/succes.svg" alt="success icon" width={100} height={100} />
           </div>
-          <p className="text-[#121212] text-[28px] font-semibold text-center mb-0!">
+          <p className="text-center text-xl font-semibold text-[#121212] sm:text-2xl lg:text-[28px]">
             Reset password link sent
           </p>
-          <p className="text-base text-[#4F4F4F] text-center">
+          <p className="mt-2 text-center text-sm text-[#4F4F4F] sm:text-base">
             We sent a password reset link to your email address {email}. Click
             on the link to add a new password
           </p>

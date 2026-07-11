@@ -68,10 +68,10 @@ const ResetPasswordForm = () => {
   };
 
   return (
-    <Container padding={30}>
+    <Container>
       {!successful && (
         <div className="w-full">
-          <p className="text-[#121212] text-[28px] font-semibold text-center mb-4">
+          <p className="mb-4 text-center text-xl font-semibold text-[#121212] sm:text-2xl lg:text-[28px]">
             Enter new password
           </p>
 
@@ -136,15 +136,12 @@ const ResetPasswordForm = () => {
           <div className="flex items-center justify-center mb-5">
             <Image src="/succes.svg" alt="success icon" width={100} height={100} />
           </div>
-          <p className="text-[#121212] text-[28px] font-semibold text-center mb-0!">
-            Password reset
-          </p>
-          <p className="text-[#121212] text-[28px] font-semibold text-center mb-4">
-            successfully. Now Sign in
+          <p className="text-center text-xl font-semibold text-[#121212] sm:text-2xl lg:text-[28px]">
+            Password reset successfully. Now sign in
           </p>
           <Button
             type="primary"
-            className="text-white text-lg! w-full rounded-[40px]! h-14!"
+            className="mt-6 h-14! w-full rounded-[40px]! text-lg! text-white"
             loading={isPending}
             onClick={() => {
               startTransition(() => {
@@ -161,7 +158,13 @@ const ResetPasswordForm = () => {
 };
 
 const ResetPassword = () => (
-  <Suspense fallback={<Container padding={30}>Loading...</Container>}>
+  <Suspense
+    fallback={
+      <Container>
+        <p className="text-center text-sm text-[#4F4F4F]">Loading...</p>
+      </Container>
+    }
+  >
     <ResetPasswordForm />
   </Suspense>
 );

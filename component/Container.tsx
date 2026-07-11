@@ -1,45 +1,50 @@
-""
-import { useAppSelector } from '@/hook';
-import { Divider } from 'antd';
-import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react'
+"use client";
 
-interface props {
-    children: React.ReactNode;
-    padding?: number;
-    width?: string;
+import { useAppSelector } from "@/hook";
+import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
+
+interface ContainerProps {
+  children: React.ReactNode;
 }
-const Container: React.FC<props> = ({ children, padding = 70, width = `700px` }) => {
-    const router = useRouter();
-    const { isAuthenticated } = useAppSelector(state => state.auth);
 
-    useEffect(() => {
-        if(isAuthenticated) router.push("/dashboard");
-    }, [isAuthenticated])
+const Container: React.FC<ContainerProps> = ({ children }) => {
+  const router = useRouter();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) router.push("/dashboard");
+  }, [isAuthenticated, router]);
+
   return (
-    <div className="linear-background bg-cover bg-no-repeat min-h-screen w-full md:px-130 flex flex-col items-center justify-center font-sans relative ">
-        <img 
-            src="/bgc.svg" 
-            className="absolute fit-object h-5/6 top-[12%] md:h-full w-full! md:top-8 overflow-hidden z-0"
-            alt="Background"
-        />
+    <div className="auth-screen linear-background relative flex min-h-screen w-full flex-col font-sans">
+      <img
+        src="/bgc.svg"
+        className="pointer-events-none absolute top-[10%] z-0 h-[85vh] w-full object-cover md:top-8 md:h-full"
+        alt=""
+        aria-hidden
+      />
 
-        <p className="font-extrabold text-2xl text-[#121212] text-center absolute z-10 top-6">
-            Tandermis
+      <header className="relative z-10 shrink-0 px-4 pt-5 pb-2 text-center sm:pt-6 md:pt-8">
+        <p className="text-xl font-extrabold text-[#121212] sm:text-2xl">
+          Tandermis
         </p>
+      </header>
 
-        <main className={`w-full no-blur flex md:px-${padding} px-3! flex-col items-center justify-center text-center z-10 gap-6 md:pb-10`}>
-            {children}
-        </main>
+      <main className="no-blur relative z-10 flex flex-1 justify-center overflow-y-auto px-4 py-4 sm:px-6 md:px-8 md:py-6 lg:px-10">
+        <div className="auth-form-panel w-full max-w-[480px] sm:max-w-[520px] md:max-w-[600px] lg:max-w-[640px] xl:max-w-[700px]">
+          {children}
+        </div>
+      </main>
 
-        <footer className="w-full text-center absolute bottom-4 z-10 text-sm text-[#6F6F6F]">
-            <Divider style={{ height: 1 }} />
-            <p>*Tandermis keeps your data safe and secured. We do not</p>
-            <p>share your data with any third party, it is use to train our Ai</p>
-            <p>model alone*</p>
-        </footer>
+      <footer className="auth-screen-footer relative z-10 shrink-0 px-4 pt-3 pb-4 sm:px-6 md:px-8">
+        <p className="mx-auto max-w-2xl text-center text-[11px] leading-relaxed text-[#6F6F6F] sm:text-xs md:text-sm">
+          *Tandermis keeps your data safe and secured. We do not share your
+          data with any third party, it is used to train our AI model alone.*
+        </p>
+      </footer>
     </div>
-  )
-}
+  );
+};
 
-export default Container
+export default Container;

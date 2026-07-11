@@ -54,16 +54,13 @@ const Login = () => {
   };
 
   return (
-    <Container padding={30}>
+    <Container>
       <div className="w-full">
-        <p className="text-[#121212] text-[28px] font-semibold text-center">
+        <p className="text-center text-xl font-semibold text-[#121212] sm:text-2xl lg:text-[28px]">
           Sign In with Email
         </p>
-        <p className="text-base text-[#4F4F4F] text-center">
-          Login to your account to see your saved and
-        </p>
-        <p className="text-base text-[#4F4F4F] text-center">
-          recorded information{" "}
+        <p className="mt-1 text-center text-sm text-[#4F4F4F] sm:text-base">
+          Login to your account to see your saved and recorded information
         </p>
 
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
