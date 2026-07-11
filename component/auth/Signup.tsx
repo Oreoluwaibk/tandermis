@@ -194,9 +194,9 @@ const Signup = () => {
               name="phone_number"
               label="Phone number"
               rules={[{ required: true, message: "Enter phone number" }]}
-              extra="For Nigerian numbers, omit the leading 0 (e.g. 8142833037)"
+              extra="For Nigerian numbers, omit the leading 0 (e.g. 8123458985)"
             >
-              <Input className="h-11!" placeholder="8142833037" />
+              <Input className="h-11!" placeholder="8123458985" />
             </FormItem>
           </div>
 

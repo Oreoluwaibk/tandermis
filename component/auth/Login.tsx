@@ -106,7 +106,7 @@ const Login = () => {
             </Button>
           </FormItem>
 
-          <p className="text-base">
+          <p className="text-base text-center">
             Don&apos;t have an account?{" "}
             <Link href="/auth/signup" className="text-[#121212]! font-semibold">
               Sign up
