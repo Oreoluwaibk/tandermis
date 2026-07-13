@@ -1,6 +1,7 @@
 "use client";
 
 import { FeedbackData } from "./types";
+import { parseDifferentialDiagnosesList } from "@/services/dermatology";
 import { Button, Input, Select } from "antd";
 import React from "react";
 
@@ -35,7 +36,8 @@ const DiagnosisFeedback = ({
     feedback.differentialsCorrect &&
     feedback.managementCorrect &&
     (!diagnosisRequiresCorrection || feedback.correctDiagnosis.trim()) &&
-    (!differentialsRequireCorrection || feedback.correctDifferentials.trim());
+    (!differentialsRequireCorrection ||
+      parseDifferentialDiagnosesList(feedback.correctDifferentials).length > 0);
 
   return (
     <div className="dashboard-form w-full rounded-[20px] bg-[#F7F7F8] p-4 md:rounded-[24px] md:p-6">
@@ -111,8 +113,11 @@ const DiagnosisFeedback = ({
                 What are the correct differential diagnoses?{" "}
                 <span className="text-[#DC1111]">*</span>
               </label>
+              <p className="mb-2 text-xs text-[#6F6F6F]">
+                Separate each diagnosis with a comma.
+              </p>
               <TextArea
-                placeholder="Enter the correct differential diagnoses"
+                placeholder="Enter differential diagnoses separated by commas, e.g. Psoriasis, Contact Dermatitis"
                 rows={3}
                 value={feedback.correctDifferentials}
                 onChange={(e) =>

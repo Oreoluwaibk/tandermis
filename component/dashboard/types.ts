@@ -51,7 +51,7 @@ export interface HistoryCase {
 export interface ReviewerFeedbackPayload {
   id: number;
   correct_diagnosis: string;
-  correct_differential_diagnoses: string;
+  correct_differential_diagnoses: string[];
   reviewer_comment?: string;
   is_model_next_steps_in_management_correct: boolean;
 }

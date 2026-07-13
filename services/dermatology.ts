@@ -33,6 +33,12 @@ export type DiagnosisStatusResponse =
 
 export const POLL_INTERVAL_MS = 3000;
 
+export const parseDifferentialDiagnosesList = (value: string): string[] =>
+  value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
 export const buildDiagnosisPayload = async (
   formData: CaseFormData
 ): Promise<ModelDiagnosisPayload> => ({
@@ -99,8 +105,8 @@ export const buildReviewerFeedbackPayload = (
 
   const correct_differential_diagnoses =
     feedback.differentialsCorrect === "Yes"
-      ? diagnosis.differential_diagnoses.map((item) => item.name).join(", ")
-      : feedback.correctDifferentials.trim();
+      ? diagnosis.differential_diagnoses.map((item) => item.name)
+      : parseDifferentialDiagnosesList(feedback.correctDifferentials);
 
   return {
     id: datasetId,
