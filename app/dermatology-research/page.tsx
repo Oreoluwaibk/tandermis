@@ -6,10 +6,7 @@ import DiagnosisFeedback from "@/component/dashboard/DiagnosisFeedback";
 import DiagnosisResultCard from "@/component/dashboard/DiagnosisResultCard";
 import FeedbackSuccess from "@/component/dashboard/FeedbackSuccess";
 import LogoutModal from "@/component/dashboard/LogoutModal";
-import ProcessingBadge, {
-  DEFAULT_PROCESSING_MESSAGE,
-  DELAYED_PROCESSING_MESSAGE,
-} from "@/component/dashboard/ProcessingBadge";
+import ProcessingBadge from "@/component/dashboard/ProcessingBadge";
 import ResultViewLayout from "@/component/dashboard/ResultViewLayout";
 import {
   CaseFormData,
@@ -39,6 +36,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 const HISTORY_KEY = "tandermis_dashboard_history";
 const CASES_COUNT_KEY = "tandermis_cases_count";
 const PROCESSING_NOTICE_MS = 90_000;
+const PROCESSING_COUNTDOWN_SECONDS = 90;
 
 const formatCaseLabel = (date: Date) =>
   date.toLocaleDateString("en-GB", {
@@ -81,9 +79,10 @@ const DermatologyResearchPage = () => {
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [processingMessage, setProcessingMessage] = useState(
-    DEFAULT_PROCESSING_MESSAGE
+  const [processingCountdown, setProcessingCountdown] = useState(
+    PROCESSING_COUNTDOWN_SECONDS
   );
+  const [processingDelayed, setProcessingDelayed] = useState(false);
 
   const stopPollingRef = useRef<(() => void) | null>(null);
   const historyRef = useRef(history);
@@ -108,25 +107,31 @@ const DermatologyResearchPage = () => {
 
   useEffect(() => {
     if (view !== "processing" || !activeCaseId) {
-      setProcessingMessage(DEFAULT_PROCESSING_MESSAGE);
+      setProcessingCountdown(PROCESSING_COUNTDOWN_SECONDS);
+      setProcessingDelayed(false);
       return;
     }
 
     const activeCase = history.find((h) => h.id === activeCaseId);
     const startedAt = activeCase?.processingStartedAt ?? Date.now();
-    const elapsed = Date.now() - startedAt;
 
-    if (elapsed >= PROCESSING_NOTICE_MS) {
-      setProcessingMessage(DELAYED_PROCESSING_MESSAGE);
-      return;
-    }
+    const tick = () => {
+      const elapsed = Date.now() - startedAt;
+      const remainingMs = PROCESSING_NOTICE_MS - elapsed;
 
-    setProcessingMessage(DEFAULT_PROCESSING_MESSAGE);
-    const timer = window.setTimeout(() => {
-      setProcessingMessage(DELAYED_PROCESSING_MESSAGE);
-    }, PROCESSING_NOTICE_MS - elapsed);
+      if (remainingMs <= 0) {
+        setProcessingDelayed(true);
+        setProcessingCountdown(0);
+        return;
+      }
 
-    return () => window.clearTimeout(timer);
+      setProcessingDelayed(false);
+      setProcessingCountdown(Math.ceil(remainingMs / 1000));
+    };
+
+    tick();
+    const interval = window.setInterval(tick, 1000);
+    return () => window.clearInterval(interval);
   }, [view, activeCaseId, history]);
 
   const updateFormData = useCallback((partial: Partial<CaseFormData>) => {
@@ -139,7 +144,8 @@ const DermatologyResearchPage = () => {
     setFeedback(emptyFeedbackData());
     setActiveCaseId(null);
     setActiveDiagnosis(undefined);
-    setProcessingMessage(DEFAULT_PROCESSING_MESSAGE);
+    setProcessingCountdown(PROCESSING_COUNTDOWN_SECONDS);
+    setProcessingDelayed(false);
     setView("form");
   };
 
@@ -246,7 +252,8 @@ const DermatologyResearchPage = () => {
     saveHistory(updatedHistory);
     setActiveCaseId(caseId);
     setActiveDiagnosis(undefined);
-    setProcessingMessage(DEFAULT_PROCESSING_MESSAGE);
+    setProcessingCountdown(PROCESSING_COUNTDOWN_SECONDS);
+    setProcessingDelayed(false);
     setView("processing");
     setSubmitting(true);
 
@@ -355,7 +362,10 @@ const DermatologyResearchPage = () => {
     if (view === "processing") {
       return (
         <ResultViewLayout formData={formData}>
-          <ProcessingBadge message={processingMessage} />
+          <ProcessingBadge
+            secondsRemaining={processingCountdown}
+            delayed={processingDelayed}
+          />
         </ResultViewLayout>
       );
     }
