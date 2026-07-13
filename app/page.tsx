@@ -23,7 +23,7 @@ function HomeContent() {
   const handleRedirect = () => {
     if(isAuthenticated) {
       startTransition(() => {
-        router.push('/dashboard');
+        router.push('/dermatology-research');
       })
     }else {
       startTransition(() => {

@@ -67,7 +67,7 @@ const Signup = () => {
                 })
               );
               setLoading(false);
-              router.push("/dashboard");
+              router.push("/dermatology-research");
             }
           })
           .catch((err) => {

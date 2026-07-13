@@ -45,6 +45,7 @@ export interface HistoryCase {
   diagnosis?: ModelDiagnosisResult;
   error?: string;
   feedbackSubmitted?: boolean;
+  processingStartedAt?: number;
 }
 
 export interface ReviewerFeedbackPayload {

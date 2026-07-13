@@ -36,7 +36,7 @@ const Login = () => {
                 })
               ).then(() => {
                 setLoading(false);
-                router.push("/dashboard");
+                router.push("/dermatology-research");
               });
             }
           })

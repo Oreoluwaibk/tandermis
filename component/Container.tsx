@@ -13,7 +13,7 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (isAuthenticated) router.push("/dashboard");
+    if (isAuthenticated) router.push("/dermatology-research");
   }, [isAuthenticated, router]);
 
   return (
