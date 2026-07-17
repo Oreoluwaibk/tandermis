@@ -42,8 +42,8 @@ const DataCollectionForm = ({
     formData.isLesionItchy;
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-[860px] flex-col overflow-hidden">
-      <div className="mb-3 shrink-0 flex flex-col items-center gap-2 text-center md:mb-5">
+    <div className="mx-auto w-full max-w-[860px]">
+      <div className="mb-3 flex flex-col items-center gap-2 text-center md:mb-5">
         <h2 className="text-xl font-medium text-[#121212] md:text-[28px]">
           Data Collection Form
         </h2>
@@ -53,42 +53,37 @@ const DataCollectionForm = ({
         </p>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-[#E0E0E0] bg-[#F5F5F5] md:rounded-[40px]">
-          <div className="shrink-0 px-3 pt-3 md:px-6 md:pt-5">
-            <p className="text-sm font-medium text-[#121212] md:text-lg">
-              Patient Personal Data
+      <div className="rounded-3xl border border-[#E0E0E0] bg-[#F5F5F5] md:rounded-[40px]">
+        <div className="px-3 pt-3 md:px-6 md:pt-5">
+          <p className="text-sm font-medium text-[#121212] md:text-lg">
+            Patient Personal Data
+          </p>
+          <div className="my-2 border-t border-[#C4C4C4] md:my-3" />
+        </div>
+
+        <div className="px-3 pb-5 md:px-6 md:pb-6">
+          <section className="mb-5 md:mb-6">
+            <p className="text-sm font-medium text-[#121212] md:text-base">
+              Patient Skin Lesion
             </p>
-            <div className="my-2 border-t border-[#C4C4C4] md:my-3" />
-          </div>
+            <p className="mt-0.5 text-xs text-[#474747] md:text-sm">
+              Upload a photograph of the skin lesion
+            </p>
+            <div className="mt-3 md:mt-4">
+              <UploadImage
+                variant="dashboard"
+                title="Lesion Image"
+                value={formData.lesionImage}
+                setValue={(val) =>
+                  onChange({ lesionImage: val as RcFile | string })
+                }
+                showDelete
+              />
+            </div>
+          </section>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4 md:px-6 md:pb-5">
-            {/* Image upload */}
-            <section className="mb-5 md:mb-6">
-              <p className="text-sm font-medium text-[#121212] md:text-base">
-                Patient Skin Lesion
-              </p>
-              <p className="mt-0.5 text-xs text-[#474747] md:text-sm">
-                Upload a photograph of the skin lesion
-              </p>
-              <div className="mt-3 flex justify-center md:mt-4">
-                <div className="w-full max-w-[420px]">
-                  <UploadImage
-                    variant="dashboard"
-                    title="Lesion Image"
-                    value={formData.lesionImage}
-                    setValue={(val) =>
-                      onChange({ lesionImage: val as RcFile | string })
-                    }
-                    showDelete
-                  />
-                </div>
-              </div>
-            </section>
-
-            {/* Form fields */}
-            <Form layout="vertical" className="dashboard-form font-sans!">
-              <Row gutter={[16, 0]}>
+          <Form layout="vertical" className="dashboard-form font-sans!">
+            <Row gutter={[16, 0]}>
                 <Col xs={24} md={12}>
                   <Form.Item
                     label="Which part of the body is the Lesion on?"
@@ -264,28 +259,27 @@ const DataCollectionForm = ({
                 </Col>
               </Row>
             </Form>
+
+            <div className="mt-5 flex justify-end md:mt-6">
+              <Button
+                type="primary"
+                loading={loading}
+                disabled={!isComplete}
+                onClick={onSubmit}
+                className={`h-12! w-full rounded-[40px]! text-sm! font-medium! md:h-14! md:w-[405px]! md:text-base! ${
+                  isComplete
+                    ? "bg-[#121212]! border-[#121212]!"
+                    : "bg-[#A0A0A0]! text-white! border-[#A0A0A0]! cursor-not-allowed!"
+                }`}
+              >
+                <span className="inline-flex items-center gap-2">
+                  Get AI Diagnosis
+                  <ArrowRightOutlined />
+                </span>
+              </Button>
+            </div>
           </div>
         </div>
-
-        <div className="mt-3 shrink-0 flex justify-end md:mt-4">
-          <Button
-            type="primary"
-            loading={loading}
-            disabled={!isComplete}
-            onClick={onSubmit}
-            className={`h-12! w-full rounded-[40px]! text-sm! font-medium! md:h-14! md:w-[405px]! md:text-base! ${
-              isComplete
-                ? "bg-[#121212]! border-[#121212]!"
-                : "bg-[#A0A0A0]! text-white! border-[#A0A0A0]! cursor-not-allowed!"
-            }`}
-          >
-            <span className="inline-flex items-center gap-2">
-              Get AI Diagnosis
-              <ArrowRightOutlined />
-            </span>
-          </Button>
-        </div>
-      </div>
     </div>
   );
 };

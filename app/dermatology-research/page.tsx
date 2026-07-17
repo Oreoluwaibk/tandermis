@@ -348,14 +348,12 @@ const DermatologyResearchPage = () => {
   const renderMainContent = () => {
     if (view === "form") {
       return (
-        <div className="mx-auto h-full max-w-[860px]">
-          <DataCollectionForm
-            formData={formData}
-            onChange={updateFormData}
-            onSubmit={handleGetDiagnosis}
-            loading={submitting}
-          />
-        </div>
+        <DataCollectionForm
+          formData={formData}
+          onChange={updateFormData}
+          onSubmit={handleGetDiagnosis}
+          loading={submitting}
+        />
       );
     }
 

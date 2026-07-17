@@ -157,6 +157,31 @@ body {
     min-height: 96px;
 }
 
+.dashboard-upload.ant-upload-wrapper {
+    display: block !important;
+    width: 100% !important;
+}
+
+.dashboard-upload .ant-upload {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+}
+
+.dashboard-upload .ant-upload-select {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.dashboard-upload .ant-upload-select > .ant-upload {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
 .ant-upload {
     width: 100% !important;
 }
