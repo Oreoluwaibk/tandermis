@@ -137,13 +137,13 @@ export const submitReviewerFeedback = (payload: ReviewerFeedbackPayload) =>
     payload
   );
 
-export interface ResponseRatingPayload {
+export interface UserRatingPayload {
   id: number;
-  is_good_response: boolean;
+  user_rating: 0 | 1;
 }
 
-export const submitResponseRating = (payload: ResponseRatingPayload) =>
-  axiosInstance.post<{ message?: string }>(
-    "/api/dermatology/response-rating",
+export const submitUserRating = (payload: UserRatingPayload) =>
+  axiosInstance.patch<{ message?: string }>(
+    "/api/dermatology/model-diagnosis/user-rating",
     payload
   );

@@ -28,7 +28,7 @@ import {
   buildReviewerFeedbackPayload,
   pollDiagnosisStatus,
   submitModelDiagnosis,
-  submitResponseRating,
+  submitUserRating,
   submitReviewerFeedback,
 } from "@/services/dermatology";
 import { createErrorMessage } from "@/utils/errorInstance";
@@ -381,9 +381,9 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
     setSelectedRating(rating);
     setRatingLoading(true);
     try {
-      const res = await submitResponseRating({
+      const res = await submitUserRating({
         id: datasetId,
-        is_good_response: rating === "up",
+        user_rating: rating === "up" ? 1 : 0,
       });
 
       if (res.status === 200 || res.status === 201 || res.status === 202) {
