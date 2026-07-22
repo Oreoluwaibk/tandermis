@@ -1,6 +1,13 @@
 import { RcFile } from "antd/es/upload";
 
-export type DashboardView = "form" | "processing" | "result" | "feedback-success";
+export type DashboardView =
+  | "form"
+  | "processing"
+  | "result"
+  | "feedback-success"
+  | "rating-success";
+
+export type ResponseRating = "up" | "down";
 
 export interface CaseFormData {
   lesionLocation: string;
@@ -45,6 +52,8 @@ export interface HistoryCase {
   diagnosis?: ModelDiagnosisResult;
   error?: string;
   feedbackSubmitted?: boolean;
+  ratingSubmitted?: boolean;
+  responseRating?: ResponseRating;
   processingStartedAt?: number;
 }
 

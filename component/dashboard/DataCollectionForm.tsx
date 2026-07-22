@@ -17,6 +17,7 @@ interface DataCollectionFormProps {
   onChange: (data: Partial<CaseFormData>) => void;
   onSubmit: () => void;
   loading?: boolean;
+  variant?: "research" | "general";
 }
 
 const fieldSelectProps = {
@@ -31,26 +32,31 @@ const DataCollectionForm = ({
   onChange,
   onSubmit,
   loading,
+  variant = "research",
 }: DataCollectionFormProps) => {
+  const isGeneral = variant === "general";
+
   const isComplete =
     formData.lesionImage &&
     formData.lesionLocation &&
     formData.patientAge &&
     formData.patientSex &&
     formData.lesionDuration &&
-    formData.fitzpatrickSkinType &&
-    formData.isLesionItchy;
+    formData.isLesionItchy &&
+    (isGeneral || formData.fitzpatrickSkinType);
 
   return (
     <div className="mx-auto w-full max-w-[860px]">
       <div className="mb-3 flex flex-col items-center gap-2 text-center md:mb-5">
         <h2 className="text-xl font-medium text-[#121212] md:text-[28px]">
-          Data Collection Form
+          {isGeneral ? "Hi doc, tell me about the patient" : "Data Collection Form"}
         </h2>
-        <p className="max-w-[520px] text-xs leading-relaxed text-[#4F4F4F] md:text-base">
-          We&apos;re building a next-generation AI system trained to identify
-          skin conditions early and accurately.
-        </p>
+        {!isGeneral && (
+          <p className="max-w-[520px] text-xs leading-relaxed text-[#4F4F4F] md:text-base">
+            We&apos;re building a next-generation AI system trained to identify
+            skin conditions early and accurately.
+          </p>
+        )}
       </div>
 
       <div className="rounded-3xl border border-[#E0E0E0] bg-[#F5F5F5] md:rounded-[40px]">
@@ -182,27 +188,29 @@ const DataCollectionForm = ({
                 </Col>
 
                 <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Fitzpatrick skin type"
-                    required
-                    className={formItemClass}
-                  >
-                    <Select
-                      {...fieldSelectProps}
-                      placeholder="choose skin type"
-                      value={formData.fitzpatrickSkinType || undefined}
-                      onChange={(val) => onChange({ fitzpatrickSkinType: val })}
+                  {!isGeneral && (
+                    <Form.Item
+                      label="Fitzpatrick skin type"
+                      required
+                      className={formItemClass}
                     >
-                      {fitzpatrickType.map((type) => (
-                        <Option key={type} value={type}>
-                          {type}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
+                      <Select
+                        {...fieldSelectProps}
+                        placeholder="choose skin type"
+                        value={formData.fitzpatrickSkinType || undefined}
+                        onChange={(val) => onChange({ fitzpatrickSkinType: val })}
+                      >
+                        {fitzpatrickType.map((type) => (
+                          <Option key={type} value={type}>
+                            {type}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  )}
                 </Col>
 
-                <Col xs={24} md={12}>
+                <Col xs={24} md={isGeneral ? 24 : 12}>
                   <Form.Item
                     label="Is lesion itchy?"
                     required

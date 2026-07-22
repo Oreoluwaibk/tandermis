@@ -4,7 +4,7 @@ import Container from "../Container";
 import { App, Button, Form, Input, Select } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createContributor, registerUser } from "@/redux/action/auth";
+import { registerUser } from "@/redux/action/auth";
 import { loginAction } from "@/redux/reducer/auth/auth";
 import { createErrorMessage } from "@/utils/errorInstance";
 import { useAppDispatch } from "@/hook";
@@ -43,23 +43,6 @@ const Signup = () => {
           .then(async (res) => {
             if (res.status === 201) {
               const { user, tokens } = res.data;
-              try {
-                await createContributor(tokens.access);
-              } catch (contributorErr: unknown) {
-                const err = contributorErr as {
-                  response?: { data?: unknown };
-                  message?: string;
-                };
-                setLoading(false);
-                modal.error({
-                  title: "Contributor registration failed",
-                  content: err?.response
-                    ? createErrorMessage(err.response.data)
-                    : err.message,
-                });
-                return;
-              }
-
               await dispatch(
                 loginAction({
                   token: tokens,
@@ -67,7 +50,7 @@ const Signup = () => {
                 })
               );
               setLoading(false);
-              router.push("/dermatology-research");
+              router.push("/dermatology");
             }
           })
           .catch((err) => {

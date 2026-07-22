@@ -13,13 +13,11 @@ export const jobTitles = [
   "consultant",
   "senior registrar",
   "registrar",
-  "senior house officer",
   "house officer",
   "medical officer",
+  "senior medical officer",
   "principal medical officer",
   "chief medical officer",
-  "fellow",
-  "specialist",
 ];
 
 export const nigerianStates = [

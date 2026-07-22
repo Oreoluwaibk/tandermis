@@ -17,7 +17,7 @@ export interface ModelDiagnosisPayload {
   itch: string;
   associated_symptoms?: string;
   additional_information?: string;
-  fitzpatrick_skin_type: string;
+  fitzpatrick_skin_type?: string;
 }
 
 export interface ModelDiagnosisAccepted {
@@ -40,18 +40,26 @@ export const parseDifferentialDiagnosesList = (value: string): string[] =>
     .filter(Boolean);
 
 export const buildDiagnosisPayload = async (
-  formData: CaseFormData
-): Promise<ModelDiagnosisPayload> => ({
-  image: await lesionImageToBase64(formData.lesionImage as RcFile),
-  age: `${formData.patientAge} ${formData.patientAgeUnit}`,
-  sex: formData.patientSex,
-  lesion_duration: `${formData.lesionDuration} ${formData.lesionDurationUnit}`,
-  body_part: formData.lesionLocation,
-  itch: formData.isLesionItchy,
-  associated_symptoms: formData.associatedSymptoms || undefined,
-  additional_information: formData.additionalInformation || undefined,
-  fitzpatrick_skin_type: formData.fitzpatrickSkinType,
-});
+  formData: CaseFormData,
+  options?: { includeFitzpatrick?: boolean }
+): Promise<ModelDiagnosisPayload> => {
+  const payload: ModelDiagnosisPayload = {
+    image: await lesionImageToBase64(formData.lesionImage as RcFile),
+    age: `${formData.patientAge} ${formData.patientAgeUnit}`,
+    sex: formData.patientSex,
+    lesion_duration: `${formData.lesionDuration} ${formData.lesionDurationUnit}`,
+    body_part: formData.lesionLocation,
+    itch: formData.isLesionItchy,
+    associated_symptoms: formData.associatedSymptoms || undefined,
+    additional_information: formData.additionalInformation || undefined,
+  };
+
+  if (options?.includeFitzpatrick !== false && formData.fitzpatrickSkinType) {
+    payload.fitzpatrick_skin_type = formData.fitzpatrickSkinType;
+  }
+
+  return payload;
+};
 
 export const submitModelDiagnosis = (payload: ModelDiagnosisPayload) =>
   axiosInstance.post<ModelDiagnosisAccepted>(
@@ -126,5 +134,16 @@ export interface ReviewerFeedbackResponse {
 export const submitReviewerFeedback = (payload: ReviewerFeedbackPayload) =>
   axiosInstance.post<ReviewerFeedbackResponse>(
     "/api/dermatology/reviewer-feedback",
+    payload
+  );
+
+export interface ResponseRatingPayload {
+  id: number;
+  is_good_response: boolean;
+}
+
+export const submitResponseRating = (payload: ResponseRatingPayload) =>
+  axiosInstance.post<{ message?: string }>(
+    "/api/dermatology/response-rating",
     payload
   );

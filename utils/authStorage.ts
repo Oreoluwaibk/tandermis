@@ -3,6 +3,7 @@ import { IUser } from "@/redux/action/auth";
 const USER_KEY = "tandermis_user";
 const TOKEN_KEY = "tandermis_token";
 const REFRESH_KEY = "tandermis_refresh_token";
+const CONTRIBUTOR_KEY = "tandermis_contributor";
 
 const isBrowser = typeof window !== "undefined";
 
@@ -52,4 +53,15 @@ export const clearAuthStorage = () => {
   localStorage.removeItem(USER_KEY);
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_KEY);
+  localStorage.removeItem(CONTRIBUTOR_KEY);
+};
+
+export const setContributorFlag = () => {
+  if (!isBrowser) return;
+  localStorage.setItem(CONTRIBUTOR_KEY, "true");
+};
+
+export const isContributor = () => {
+  if (!isBrowser) return false;
+  return localStorage.getItem(CONTRIBUTOR_KEY) === "true";
 };
