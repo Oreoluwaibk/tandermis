@@ -1,11 +1,12 @@
-"use client"
-import Login from '@/component/auth/Login'
-import React from 'react'
+"use client";
 
-const page = () => {
-  return (
+import Login from "@/component/auth/Login";
+import { Suspense } from "react";
+
+const page = () => (
+  <Suspense fallback={null}>
     <Login />
-  )
-}
+  </Suspense>
+);
 
-export default page
+export default page;

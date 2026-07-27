@@ -3,10 +3,11 @@ import React from "react";
 import Container from "../Container";
 import { App, Button, Form, Input, Select } from "antd";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { registerUser } from "@/redux/action/auth";
 import { loginAction } from "@/redux/reducer/auth/auth";
 import { createErrorMessage } from "@/utils/errorInstance";
+import { getSafeRedirect } from "@/utils/safeRedirect";
 import { useAppDispatch } from "@/hook";
 import {
   countries,
@@ -20,6 +21,8 @@ const FormItem = Form.Item;
 
 const Signup = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = getSafeRedirect(searchParams.get("next"));
   const { modal } = App.useApp();
   const dispatch = useAppDispatch();
   const [form] = Form.useForm();
@@ -50,7 +53,7 @@ const Signup = () => {
                 })
               );
               setLoading(false);
-              router.push("/dermatology");
+              router.push(next);
             }
           })
           .catch((err) => {
@@ -267,7 +270,14 @@ const Signup = () => {
 
           <p className="text-base text-center">
             Already have an account?{" "}
-            <Link href="/auth/login" className="text-[#121212]! font-semibold">
+            <Link
+              href={
+                next === "/dermatology"
+                  ? "/auth/login"
+                  : `/auth/login?next=${encodeURIComponent(next)}`
+              }
+              className="text-[#121212]! font-semibold"
+            >
               Sign in
             </Link>
           </p>

@@ -3,16 +3,19 @@ import React from "react";
 import Container from "../Container";
 import { App, Button, Form, Input } from "antd";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { login } from "@/redux/action/auth";
 import { loginAction } from "@/redux/reducer/auth/auth";
 import { createErrorMessage } from "@/utils/errorInstance";
+import { getSafeRedirect } from "@/utils/safeRedirect";
 import { useAppDispatch } from "@/hook";
 
 const FormItem = Form.Item;
 
 const Login = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = getSafeRedirect(searchParams.get("next"));
   const { modal } = App.useApp();
   const dispatch = useAppDispatch();
   const [form] = Form.useForm();
@@ -36,7 +39,7 @@ const Login = () => {
                 })
               ).then(() => {
                 setLoading(false);
-                router.push("/dermatology");
+                router.push(next);
               });
             }
           })
@@ -108,7 +111,14 @@ const Login = () => {
 
           <p className="text-base text-center">
             Don&apos;t have an account?{" "}
-            <Link href="/auth/signup" className="text-[#121212]! font-semibold">
+            <Link
+              href={
+                next === "/dermatology"
+                  ? "/auth/signup"
+                  : `/auth/signup?next=${encodeURIComponent(next)}`
+              }
+              className="text-[#121212]! font-semibold"
+            >
               Sign up
             </Link>
           </p>

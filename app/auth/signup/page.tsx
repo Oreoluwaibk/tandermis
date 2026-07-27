@@ -1,10 +1,10 @@
-import Signup from '@/component/auth/Signup'
-import React from 'react'
+import Signup from "@/component/auth/Signup";
+import { Suspense } from "react";
 
-const page = () => {
-  return (
+const page = () => (
+  <Suspense fallback={null}>
     <Signup />
-  )
-}
+  </Suspense>
+);
 
-export default page
+export default page;
