@@ -28,6 +28,16 @@ export interface DifferentialDiagnosis {
   reasoning: string;
 }
 
+export interface DiagnosisWithReasoning {
+  name: string;
+  reasoning: string;
+}
+
+export const normalizeMostLikelyDiagnosis = (
+  value: DiagnosisWithReasoning | string
+): DiagnosisWithReasoning =>
+  typeof value === "string" ? { name: value, reasoning: "" } : value;
+
 export interface ManagementStep {
   step_number: number;
   description: string;
@@ -36,7 +46,7 @@ export interface ManagementStep {
 
 export interface ModelDiagnosisResult {
   id: number;
-  most_likely_diagnosis: string;
+  most_likely_diagnosis: DiagnosisWithReasoning;
   differential_diagnoses: DifferentialDiagnosis[];
   next_steps_in_management: ManagementStep[];
   important_considerations: string[];

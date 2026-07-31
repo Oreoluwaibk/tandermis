@@ -1,7 +1,7 @@
 "use client";
 
 import { LightbulbIcon } from "./icons";
-import { ModelDiagnosisResult } from "./types";
+import { ModelDiagnosisResult, normalizeMostLikelyDiagnosis } from "./types";
 import React from "react";
 
 interface DiagnosisResultCardProps {
@@ -12,7 +12,12 @@ interface DiagnosisResultCardProps {
 const DiagnosisResultCard = ({
   totalCases,
   diagnosis,
-}: DiagnosisResultCardProps) => (
+}: DiagnosisResultCardProps) => {
+  const mostLikelyDiagnosis = diagnosis
+    ? normalizeMostLikelyDiagnosis(diagnosis.most_likely_diagnosis)
+    : null;
+
+  return (
   <div className="w-full">
     <h3 className="mb-3 text-lg font-semibold text-[#121212] md:text-xl">
       Result Diagnosis
@@ -30,8 +35,13 @@ const DiagnosisResultCard = ({
             Most likely diagnosis
           </p>
           <p className="text-base font-medium text-[#121212]">
-            {diagnosis.most_likely_diagnosis}
+            {mostLikelyDiagnosis?.name}
           </p>
+          {mostLikelyDiagnosis?.reasoning && (
+            <p className="mt-0.5 text-[#4F4F4F]">
+              {mostLikelyDiagnosis.reasoning}
+            </p>
+          )}
         </div>
 
         {diagnosis.differential_diagnoses?.length > 0 && (
@@ -113,6 +123,7 @@ const DiagnosisResultCard = ({
       {diagnosis ? "Analysis complete" : "Thought for 90 secs"}
     </div>
   </div>
-);
+  );
+};
 
 export default DiagnosisResultCard;

@@ -2,6 +2,7 @@ import {
   CaseFormData,
   FeedbackData,
   ModelDiagnosisResult,
+  normalizeMostLikelyDiagnosis,
   ReviewerFeedbackPayload,
 } from "@/component/dashboard/types";
 import axiosInstance from "@/utils/axiosConfig";
@@ -108,7 +109,7 @@ export const buildReviewerFeedbackPayload = (
 ): ReviewerFeedbackPayload => {
   const correct_diagnosis =
     feedback.diagnosisCorrect === "Yes"
-      ? diagnosis.most_likely_diagnosis
+      ? normalizeMostLikelyDiagnosis(diagnosis.most_likely_diagnosis).name
       : feedback.correctDiagnosis.trim();
 
   const correct_differential_diagnoses =
