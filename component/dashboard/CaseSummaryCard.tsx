@@ -8,6 +8,7 @@ interface CaseSummaryCardProps {
   formData: CaseFormData;
   compact?: boolean;
   variant?: "default" | "chat";
+  flowMode?: "research" | "general";
 }
 
 const getImageSrc = (value: RcFile | string) => {
@@ -21,9 +22,11 @@ const CaseSummaryCard = ({
   formData,
   compact,
   variant = "default",
+  flowMode = "research",
 }: CaseSummaryCardProps) => {
   const lesionSrc = getImageSrc(formData.lesionImage);
   const isChat = variant === "chat";
+  const showFitzpatrick = flowMode === "research";
 
   const fields = [
     {
@@ -46,12 +49,16 @@ const CaseSummaryCard = ({
         ? `${formData.lesionDuration} ${formData.lesionDurationUnit}`
         : "",
     },
-    {
-      question: "Fitzpatrick skin type",
-      answer:
-        fitzpatrickLabels[formData.fitzpatrickSkinType] ||
-        formData.fitzpatrickSkinType,
-    },
+    ...(showFitzpatrick
+      ? [
+          {
+            question: "Fitzpatrick skin type",
+            answer:
+              fitzpatrickLabels[formData.fitzpatrickSkinType] ||
+              formData.fitzpatrickSkinType,
+          },
+        ]
+      : []),
     {
       question: "Is lesion itchy?",
       answer: formData.isLesionItchy,

@@ -439,7 +439,7 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
 
     if (view === "processing") {
       return (
-        <ResultViewLayout formData={formData}>
+        <ResultViewLayout formData={formData} flowMode={mode}>
           <ProcessingBadge
             secondsRemaining={processingCountdown}
             delayed={processingDelayed}
@@ -450,7 +450,7 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
 
     if (view === "result") {
       return (
-        <ResultViewLayout formData={formData}>
+        <ResultViewLayout formData={formData} flowMode={mode}>
           <DiagnosisResultCard
             totalCases={totalCases}
             diagnosis={activeDiagnosis}
@@ -477,7 +477,7 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
 
     if (view === "feedback-success") {
       return (
-        <ResultViewLayout formData={formData}>
+        <ResultViewLayout formData={formData} flowMode={mode}>
           <DiagnosisResultCard
             totalCases={totalCases}
             diagnosis={activeDiagnosis}
@@ -489,7 +489,7 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
 
     if (view === "rating-success") {
       return (
-        <ResultViewLayout formData={formData}>
+        <ResultViewLayout formData={formData} flowMode={mode}>
           <DiagnosisResultCard
             totalCases={totalCases}
             diagnosis={activeDiagnosis}

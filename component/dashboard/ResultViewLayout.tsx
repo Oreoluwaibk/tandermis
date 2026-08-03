@@ -6,16 +6,25 @@ import React from "react";
 
 interface ResultViewLayoutProps {
   formData: CaseFormData;
+  flowMode?: "research" | "general";
   children: React.ReactNode;
 }
 
-const ResultViewLayout = ({ formData, children }: ResultViewLayoutProps) => (
+const ResultViewLayout = ({
+  formData,
+  flowMode = "research",
+  children,
+}: ResultViewLayoutProps) => (
   <div className="w-full max-w-5xl">
     <div className="flex flex-col gap-6 md:gap-8">
       {/* User context — ChatGPT-style prompt bubble, wider, anchored right on desktop */}
       <div className="flex w-full justify-stretch md:justify-end">
         <div className="w-full md:max-w-[540px] lg:max-w-[580px]">
-          <CaseSummaryCard formData={formData} variant="chat" />
+          <CaseSummaryCard
+            formData={formData}
+            variant="chat"
+            flowMode={flowMode}
+          />
         </div>
       </div>
 
