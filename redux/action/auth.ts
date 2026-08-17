@@ -16,6 +16,9 @@ export interface IUser {
   last_name: string;
   job_title?: string;
   workplace_name?: string;
+  phone_number?: string;
+  country_code?: string;
+  account_id?: number;
 }
 
 export interface LoginResponse {
@@ -57,6 +60,8 @@ export interface SignupPayload {
   local_government_area: string;
   state: string;
   country: string;
+  account_id: number;
+  invite_token?: string;
 }
 
 export const login = (data: LoginData) =>

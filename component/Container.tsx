@@ -1,20 +1,28 @@
 "use client";
 
 import { useAppSelector } from "@/hook";
-import { useRouter } from "next/navigation";
+import { getSafeRedirect } from "@/utils/safeRedirect";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect } from "react";
 
 interface ContainerProps {
   children: React.ReactNode;
+  skipAuthRedirect?: boolean;
 }
 
-const Container: React.FC<ContainerProps> = ({ children }) => {
+const Container: React.FC<ContainerProps> = ({
+  children,
+  skipAuthRedirect = false,
+}) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = getSafeRedirect(searchParams.get("next"));
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (isAuthenticated) router.push("/dermatology");
-  }, [isAuthenticated, router]);
+    if (skipAuthRedirect) return;
+    if (isAuthenticated) router.push(next);
+  }, [isAuthenticated, router, next, skipAuthRedirect]);
 
   return (
     <div className="auth-screen linear-background relative flex min-h-screen w-full flex-col font-sans">

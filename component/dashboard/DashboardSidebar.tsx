@@ -5,6 +5,7 @@ import { IUser } from "@/redux/action/auth";
 import { HistoryCase } from "./types";
 import { LogoutOutlined, MoreOutlined } from "@ant-design/icons";
 import { Button, Drawer, Dropdown } from "antd";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 interface SidebarContentProps {
@@ -28,6 +29,7 @@ export const SidebarContent = ({
   onLogoutClick,
   onNavigate,
 }: SidebarContentProps) => {
+  const router = useRouter();
   const displayName = user
     ? `${user.first_name} ${user.last_name}`
     : "Guest User";
@@ -103,15 +105,24 @@ export const SidebarContent = ({
         </Button>
 
         <div className="flex items-center gap-3 rounded-2xl border border-[#E8E8E8] px-3 py-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F5D2FC] text-sm font-semibold text-[#1E1E1E]">
-            {getNickNames(displayName)}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-[#121212]">
-              {displayName}
-            </p>
-            <p className="truncate text-xs text-[#888888]">{displayEmail}</p>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              onNavigate?.();
+              router.push("/profile");
+            }}
+            className="flex min-w-0 flex-1 items-center gap-3 text-left"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F5D2FC] text-sm font-semibold text-[#1E1E1E]">
+              {getNickNames(displayName)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-[#121212]">
+                {displayName}
+              </p>
+              <p className="truncate text-xs text-[#888888]">{displayEmail}</p>
+            </div>
+          </button>
           <button
             type="button"
             onClick={onLogoutClick}

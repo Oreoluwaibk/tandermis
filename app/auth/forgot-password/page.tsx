@@ -1,10 +1,10 @@
-import ForgotPassword from '@/component/auth/ForgotPassword'
-import React from 'react'
+import ForgotPassword from "@/component/auth/ForgotPassword";
+import { Suspense } from "react";
 
-const page = () => {
-  return (
+const page = () => (
+  <Suspense fallback={null}>
     <ForgotPassword />
-  )
-}
+  </Suspense>
+);
 
-export default page
+export default page;

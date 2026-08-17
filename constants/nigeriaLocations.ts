@@ -20,6 +20,28 @@ export const jobTitles = [
   "chief medical officer",
 ];
 
+export const toTitleCase = (value: string) =>
+  value
+    .split(" ")
+    .map((part) =>
+      part.toLowerCase() === "fct"
+        ? "FCT"
+        : part.charAt(0).toUpperCase() + part.slice(1)
+    )
+    .join(" ");
+
+export const formatPhoneForGateway = (
+  phone?: string,
+  countryCode = "234"
+) => {
+  if (!phone) return "";
+  const digits = phone.replace(/\D/g, "");
+  if (countryCode === "234" && !digits.startsWith("0") && !digits.startsWith("234")) {
+    return `0${digits}`;
+  }
+  return digits;
+};
+
 export const nigerianStates = [
   "abia",
   "adamawa",
@@ -59,6 +81,11 @@ export const nigerianStates = [
   "yobe",
   "zamfara",
 ];
+
+export const stateOptions = nigerianStates.map((state) => {
+  const label = toTitleCase(state);
+  return { value: label, label };
+});
 
 export const normalizePhoneNumber = (phone: string, countryCode: string) => {
   let digits = phone.replace(/\D/g, "");

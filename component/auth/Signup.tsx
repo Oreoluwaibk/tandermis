@@ -1,21 +1,24 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Container from "../Container";
-import { App, Button, Form, Input, Select } from "antd";
+import { App, Button, Form, Input, InputNumber, Radio, Select } from "antd";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { registerUser } from "@/redux/action/auth";
+import { registerUser, SignupPayload } from "@/redux/action/auth";
 import { loginAction } from "@/redux/reducer/auth/auth";
 import { createErrorMessage } from "@/utils/errorInstance";
 import { getSafeRedirect } from "@/utils/safeRedirect";
-import { useAppDispatch } from "@/hook";
+import { useAppDispatch, useAppSelector } from "@/hook";
 import {
   countries,
   countryCodes,
   jobTitles,
   normalizePhoneNumber,
-  nigerianStates,
+  stateOptions,
 } from "@/constants/nigeriaLocations";
+import { Account, AccountType, createAccount } from "@/services/account";
+import { getTeamInvitation, TeamInvitation } from "@/services/invitation";
+import { setProfileExtras, setStoredAccount } from "@/utils/accountStorage";
 
 const FormItem = Form.Item;
 
@@ -23,68 +26,315 @@ const Signup = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = getSafeRedirect(searchParams.get("next"));
+  const inviteToken =
+    searchParams.get("invite_token") || searchParams.get("token");
   const { modal } = App.useApp();
   const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const [form] = Form.useForm();
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+  const [invitation, setInvitation] = useState<TeamInvitation | null>(null);
+  const [inviteLoading, setInviteLoading] = useState(Boolean(inviteToken));
+  const accountType: AccountType =
+    Form.useWatch("account_type", form) || "INDIVIDUAL";
+
+  useEffect(() => {
+    if (isAuthenticated && !inviteToken) {
+      router.replace(next);
+    }
+    // Only redirect people who arrive already signed in.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!inviteToken) return;
+
+    setInviteLoading(true);
+    getTeamInvitation(inviteToken)
+      .then((res) => {
+        if (res.data.status !== "valid" || !res.data.invitation) {
+          modal.error({
+            title: "Invalid invitation",
+            content:
+              res.data.error ||
+              "This invitation is no longer valid. Please request a new one.",
+          });
+          return;
+        }
+
+        const invite = res.data.invitation;
+        setInvitation(invite);
+        form.setFieldsValue({
+          email: invite.email,
+          workplace_name: invite.account_name,
+          address_line_1: invite.address,
+          state: invite.state,
+          country: invite.country,
+        });
+      })
+      .catch((err) => {
+        modal.error({
+          title: "Unable to load invitation",
+          content: err?.response
+            ? createErrorMessage(err.response.data)
+            : err.message,
+        });
+      })
+      .finally(() => setInviteLoading(false));
+  }, [inviteToken, form, modal]);
+
+  const autofillFromAccount = () => {
+    const values = form.getFieldsValue();
+    form.setFieldsValue({
+      workplace_name: values.account_name || values.workplace_name,
+      address_line_1: values.account_address,
+      state: values.account_state,
+      country: values.account_country,
+    });
+  };
 
   const handleSubmit = async () => {
-    const { validateFields } = form;
-    validateFields()
-      .then((values) => {
-        setLoading(true);
-        const payload = {
-          ...values,
-          phone_number: normalizePhoneNumber(
-            values.phone_number,
-            values.country_code
-          ),
-        };
-        delete payload.confirm_password;
+    try {
+      const values = await form.validateFields();
+      setLoading(true);
 
-        registerUser(payload)
-          .then(async (res) => {
-            if (res.status === 201) {
-              const { user, tokens } = res.data;
-              await dispatch(
-                loginAction({
-                  token: tokens,
-                  user,
-                })
-              );
-              setLoading(false);
-              router.push(next);
-            }
+      const {
+        account_name,
+        account_type,
+        max_seat,
+        account_address,
+        account_state,
+        account_country,
+        confirm_password,
+        ...userFields
+      } = values;
+
+      let accountId = invitation?.account_id;
+      let createdAccount: Account | null = invitation
+        ? {
+            id: invitation.account_id,
+            name: invitation.account_name,
+            account_type: "TEAM",
+            max_seat: 2,
+            address: invitation.address,
+            state: invitation.state,
+            country: invitation.country,
+          }
+        : null;
+
+      if (!accountId) {
+        const accountName =
+          account_name ||
+          `${userFields.first_name} ${userFields.last_name}`.trim();
+        const accountRes = await createAccount({
+          name: accountName,
+          account_type,
+          max_seat: account_type === "INDIVIDUAL" ? 1 : Number(max_seat) || 2,
+          address: account_address,
+          state: account_state,
+          country: account_country,
+        });
+        createdAccount = accountRes.data.account;
+        accountId = createdAccount.id;
+      }
+
+      if (createdAccount) {
+        setStoredAccount(createdAccount);
+      }
+
+      const payload: SignupPayload = {
+        first_name: userFields.first_name,
+        last_name: userFields.last_name,
+        username: userFields.username,
+        email: userFields.email,
+        password: userFields.password,
+        phone_number: normalizePhoneNumber(
+          userFields.phone_number,
+          userFields.country_code
+        ),
+        country_code: userFields.country_code,
+        job_title: userFields.job_title,
+        workplace_name: userFields.workplace_name,
+        address_line_1: userFields.address_line_1,
+        address_line_2: userFields.address_line_2 || undefined,
+        local_government_area: userFields.local_government_area,
+        state: userFields.state,
+        country: userFields.country,
+        account_id: accountId as number,
+        invite_token: inviteToken || undefined,
+      };
+
+      const res = await registerUser(payload);
+      if (res.status === 201) {
+        const { user, tokens } = res.data;
+        setProfileExtras({
+          phone_number: payload.phone_number,
+          country_code: payload.country_code,
+          address_line_1: payload.address_line_1,
+          address_line_2: payload.address_line_2,
+          local_government_area: payload.local_government_area,
+          state: payload.state,
+          country: payload.country,
+          job_title: payload.job_title,
+          workplace_name: payload.workplace_name,
+        });
+        await dispatch(
+          loginAction({
+            token: tokens,
+            user,
           })
-          .catch((err) => {
-            setLoading(false);
-            modal.error({
-              title: "Error",
-              content: err?.response
-                ? createErrorMessage(err.response.data)
-                : err.message,
-            });
-          });
-      })
-      .catch(() => setLoading(false));
+        );
+
+        if (inviteToken) {
+          router.push(next);
+        } else if (createdAccount?.account_type === "TEAM") {
+          router.push("/invite-team");
+        } else {
+          router.push(next);
+        }
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: unknown }; message?: string };
+      if (error?.response || error?.message) {
+        modal.error({
+          title: "Error",
+          content: error?.response
+            ? createErrorMessage(error.response.data)
+            : error.message,
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Container>
+    <Container skipAuthRedirect>
       <div className="w-full">
         <p className="text-center text-xl font-semibold text-[#121212] sm:text-2xl lg:text-[28px]">
           Sign Up with Email
         </p>
         <p className="mt-1 text-center text-sm text-[#4F4F4F] sm:text-base">
-          Register to save and record your clinical contributions
+          {invitation
+            ? `Join ${invitation.account_name} to start contributing`
+            : "Create your account to save and record clinical contributions"}
         </p>
+
+        {invitation && (
+          <div className="mt-4 rounded-2xl bg-[#F7F7F8] px-4 py-3 text-sm text-[#4F4F4F]">
+            You were invited by {invitation.invited_by} as a{" "}
+            <span className="font-semibold text-[#121212]">
+              {invitation.role.toLowerCase()}
+            </span>
+            .
+          </div>
+        )}
 
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          initialValues={{ country_code: "234", country: "Nigeria" }}
+          initialValues={{
+            country_code: "234",
+            country: "Nigeria",
+            account_country: "Nigeria",
+            account_type: "INDIVIDUAL",
+            max_seat: 2,
+          }}
         >
+          {!invitation && (
+            <>
+              <p className="mt-4 mb-2 text-sm font-semibold text-[#121212]">
+                Account details
+              </p>
+
+              <FormItem
+                name="account_type"
+                label="Account type"
+                rules={[{ required: true, message: "Select account type" }]}
+              >
+                <Radio.Group className="flex gap-4">
+                  <Radio value="INDIVIDUAL">Individual</Radio>
+                  <Radio value="TEAM">Team</Radio>
+                </Radio.Group>
+              </FormItem>
+
+              <FormItem
+                name="account_name"
+                label={
+                  accountType === "TEAM"
+                    ? "Organization / hospital name"
+                    : "Account name"
+                }
+                rules={[{ required: true, message: "Enter account name" }]}
+              >
+                <Input
+                  className="h-11!"
+                  placeholder={
+                    accountType === "TEAM"
+                      ? "Enter hospital or organization name"
+                      : "Your full name or practice name"
+                  }
+                />
+              </FormItem>
+
+              {accountType === "TEAM" && (
+                <FormItem
+                  name="max_seat"
+                  label="Maximum seats"
+                  rules={[
+                    { required: true, message: "Enter the number of seats" },
+                    {
+                      type: "number",
+                      min: 2,
+                      message: "Team accounts need at least 2 seats",
+                    },
+                  ]}
+                >
+                  <InputNumber
+                    className="h-11! w-full!"
+                    min={2}
+                    placeholder="Minimum of 2"
+                  />
+                </FormItem>
+              )}
+
+              <FormItem
+                name="account_address"
+                label="Account address"
+                rules={[{ required: true, message: "Enter account address" }]}
+              >
+                <Input
+                  className="h-11!"
+                  placeholder="Hospital / organization address"
+                />
+              </FormItem>
+
+              <FormItem
+                name="account_state"
+                label="Account state"
+                rules={[{ required: true, message: "Select state" }]}
+              >
+                <Select
+                  showSearch
+                  placeholder="Select state"
+                  options={stateOptions}
+                />
+              </FormItem>
+
+              <FormItem
+                name="account_country"
+                label="Account country"
+                rules={[{ required: true, message: "Select country" }]}
+              >
+                <Select
+                  showSearch
+                  options={countries.map((c) => ({ value: c, label: c }))}
+                />
+              </FormItem>
+            </>
+          )}
+
           <p className="mt-4 mb-2 text-sm font-semibold text-[#121212]">
             Personal details
           </p>
@@ -121,7 +371,11 @@ const Signup = () => {
               { type: "email", message: "Please enter a valid email" },
             ]}
           >
-            <Input className="h-11!" placeholder="Enter email address" />
+            <Input
+              className="h-11!"
+              placeholder="Enter email address"
+              disabled={Boolean(invitation?.email)}
+            />
           </FormItem>
 
           <FormItem
@@ -202,9 +456,16 @@ const Signup = () => {
             />
           </FormItem>
 
-          <p className="mt-4 mb-2 text-sm font-semibold text-[#121212]">
-            Workplace details
-          </p>
+          <div className="mt-4 mb-2 flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-[#121212]">
+              Workplace details
+            </p>
+            {!invitation && (
+              <Button type="link" className="px-0!" onClick={autofillFromAccount}>
+                Use account address
+              </Button>
+            )}
+          </div>
 
           <FormItem
             name="workplace_name"
@@ -242,7 +503,7 @@ const Signup = () => {
             <Select
               showSearch
               placeholder="Select state"
-              options={nigerianStates.map((s) => ({ value: s, label: s }))}
+              options={stateOptions}
             />
           </FormItem>
 
@@ -262,19 +523,22 @@ const Signup = () => {
               type="primary"
               htmlType="submit"
               className="text-white text-lg! w-full rounded-[40px]! h-14!"
-              loading={loading}
+              loading={loading || inviteLoading}
+              disabled
             >
               Register
             </Button>
           </FormItem>
 
-          <p className="text-base text-center">
+          <p className="text-center text-base">
             Already have an account?{" "}
             <Link
               href={
-                next === "/dermatology"
-                  ? "/auth/login"
-                  : `/auth/login?next=${encodeURIComponent(next)}`
+                inviteToken
+                  ? `/auth/login?next=${encodeURIComponent(`/invite?token=${inviteToken}`)}`
+                  : next === "/dermatology"
+                    ? "/auth/login"
+                    : `/auth/login?next=${encodeURIComponent(next)}`
               }
               className="text-[#121212]! font-semibold"
             >
