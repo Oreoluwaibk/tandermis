@@ -7,6 +7,7 @@ import {
   getRefreshToken,
   getStoredUser,
   setAuthStorage,
+  setStoredUser,
 } from "@/utils/authStorage";
 
 const isBrowser = typeof window !== "undefined";
@@ -79,6 +80,13 @@ export const signinSlice = createSlice({
         clearAuthStorage();
       }
     },
+
+    setUser: (state, action: PayloadAction<IUser>) => {
+      state.user = action.payload;
+      if (isBrowser) {
+        setStoredUser(action.payload);
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -107,7 +115,7 @@ export const signinSlice = createSlice({
   },
 });
 
-export const { setAuthTokens, logoutUser } = signinSlice.actions;
+export const { setAuthTokens, logoutUser, setUser } = signinSlice.actions;
 
 export default signinSlice.reducer;
 

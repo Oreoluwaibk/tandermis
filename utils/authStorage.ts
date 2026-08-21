@@ -49,6 +49,11 @@ export const setAuthStorage = (data: {
   }
 };
 
+export const setStoredUser = (user: IUser) => {
+  if (!isBrowser) return;
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+};
+
 export const clearAuthStorage = () => {
   if (!isBrowser) return;
   localStorage.removeItem(USER_KEY);

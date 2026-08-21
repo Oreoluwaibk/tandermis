@@ -1,28 +1,23 @@
 "use client";
 
 import { useAppDispatch, useAppSelector } from "@/hook";
+import {
+  apiLogout,
+  isAccountAdmin,
+  isTeamAccount,
+} from "@/redux/action/auth";
 import { logoutUser, selectedRefresh } from "@/redux/reducer/auth/auth";
-import { apiLogout } from "@/redux/action/auth";
-import { Account, getAccount } from "@/services/account";
 import {
   getInviteCount,
   getProfileExtras,
   getStoredAccount,
-  getStoredSubscription,
-  setStoredAccount,
 } from "@/utils/accountStorage";
 import { getNickNames } from "@/utils/getNickname";
+import { formatReadableDate } from "@/utils/formatDate";
 import { LogoutOutlined } from "@ant-design/icons";
 import { App, Button, Card, Divider } from "antd";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-
-const formatDate = (value?: string) => {
-  if (!value) return "Not available";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
-};
 
 const DetailRow = ({
   label,
@@ -46,10 +41,9 @@ const Page = () => {
   const refreshToken = useAppSelector(selectedRefresh);
   const router = useRouter();
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const [account, setAccount] = useState<Account | null>(null);
   const [extras, setExtras] = useState<ReturnType<typeof getProfileExtras>>(null);
-  const [subscription, setSubscription] = useState<
-    ReturnType<typeof getStoredSubscription>
+  const [storedAccount, setStoredAccountState] = useState<
+    ReturnType<typeof getStoredAccount>
   >(null);
   const [inviteCount, setInviteCount] = useState(0);
   const [casesCount, setCasesCount] = useState(0);
@@ -59,9 +53,8 @@ const Page = () => {
   }, [isAuthenticated, router]);
 
   useEffect(() => {
-    setAccount(getStoredAccount());
+    setStoredAccountState(getStoredAccount());
     setExtras(getProfileExtras());
-    setSubscription(getStoredSubscription());
     setInviteCount(getInviteCount());
     const research = parseInt(
       localStorage.getItem("tandermis_cases_count") || "0",
@@ -72,19 +65,6 @@ const Page = () => {
       10
     );
     setCasesCount(research + general);
-
-    getAccount()
-      .then((res) => {
-        const data = res.data as { account?: Account } & Partial<Account>;
-        const nextAccount = data.account || (data.id ? (data as Account) : null);
-        if (nextAccount?.id) {
-          setAccount(nextAccount);
-          setStoredAccount(nextAccount);
-        }
-      })
-      .catch(() => {
-        // Keep locally stored account if the GET endpoint is unavailable.
-      });
   }, []);
 
   const handleLogout = async () => {
@@ -108,8 +88,12 @@ const Page = () => {
 
   if (!isAuthenticated) return null;
 
-  const isTeam = account?.account_type === "TEAM";
+  const accountDetails = user?.account_details;
+  const isTeam = isTeamAccount(user) || storedAccount?.account_type === "TEAM";
+  const canInvite = isAccountAdmin(user);
   const displayName = `${user?.first_name || ""} ${user?.last_name || ""}`.trim();
+  const expiry = accountDetails?.subscription_valid_to;
+  const maxSeat = accountDetails?.max_seat || storedAccount?.max_seat;
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] px-4 py-6 font-sans md:px-8 md:py-10">
@@ -159,19 +143,32 @@ const Page = () => {
             }
           />
 
-          {account && (
+          {(accountDetails || storedAccount) && (
             <>
               <Divider />
               <p className="mb-2 text-base font-semibold text-[#121212]">
                 Account
               </p>
-              <DetailRow label="Account name" value={account.name} />
-              <DetailRow label="Type" value={account.account_type} />
+              {storedAccount?.name && (
+                <DetailRow label="Account name" value={storedAccount.name} />
+              )}
               <DetailRow
-                label="Address"
-                value={`${account.address}, ${account.state}, ${account.country}`}
+                label="Type"
+                value={isTeam ? "TEAM" : "INDIVIDUAL"}
               />
-              <DetailRow label="Max seats" value={account.max_seat} />
+              {accountDetails?.account_id && (
+                <DetailRow label="Account ID" value={accountDetails.account_id} />
+              )}
+              {accountDetails?.role && (
+                <DetailRow label="Role" value={accountDetails.role} />
+              )}
+              <DetailRow label="Max seats" value={maxSeat} />
+              {storedAccount && (
+                <DetailRow
+                  label="Address"
+                  value={`${storedAccount.address}, ${storedAccount.state}, ${storedAccount.country}`}
+                />
+              )}
             </>
           )}
 
@@ -183,36 +180,32 @@ const Page = () => {
               </p>
               <DetailRow
                 label="Subscription status"
-                value={subscription?.status || "Not started"}
+                value={expiry ? "Active" : "Not started"}
               />
               <DetailRow
                 label="Expires"
-                value={
-                  subscription?.subscription_valid_to
-                    ? formatDate(subscription.subscription_valid_to)
-                    : "No active subscription"
-                }
+                value={expiry ? formatReadableDate(expiry) : "No active subscription"}
               />
               <DetailRow label="Invites sent" value={inviteCount} />
               <DetailRow
                 label="Seats"
-                value={`${inviteCount + 1} / ${account?.max_seat || 2}`}
+                value={`${inviteCount + 1} / ${maxSeat || 2}`}
               />
               <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                <Button
-                  type="primary"
-                  className="h-12! flex-1 rounded-[40px]!"
-                  onClick={() => router.push("/invite-team")}
-                >
-                  Invite members
-                </Button>
+                {canInvite && (
+                  <Button
+                    type="primary"
+                    className="h-12! flex-1 rounded-[40px]!"
+                    onClick={() => router.push("/invite-team")}
+                  >
+                    Invite members
+                  </Button>
+                )}
                 <Button
                   className="h-12! flex-1 rounded-[40px]!"
                   onClick={() => router.push("/payment")}
                 >
-                  {subscription?.status === "SUCCESS"
-                    ? "Renew subscription"
-                    : "Pay subscription"}
+                  {expiry ? "Renew subscription" : "Pay subscription"}
                 </Button>
               </div>
             </>

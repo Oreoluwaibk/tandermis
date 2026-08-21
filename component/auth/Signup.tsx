@@ -212,7 +212,18 @@ const Signup = () => {
         await dispatch(
           loginAction({
             token: tokens,
-            user,
+            user: {
+              ...user,
+              account_details: user.account_details ||
+                (createdAccount
+                  ? {
+                      account_id: createdAccount.id,
+                      role: "ADMIN",
+                      max_seat: createdAccount.max_seat,
+                      subscription_valid_to: null,
+                    }
+                  : undefined),
+            },
           })
         );
 

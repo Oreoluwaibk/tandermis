@@ -8,6 +8,13 @@ export interface LoginData {
   password: string;
 }
 
+export interface IAccountDetails {
+  account_id: number;
+  role: string;
+  max_seat: number;
+  subscription_valid_to?: string | null;
+}
+
 export interface IUser {
   id: number;
   email: string;
@@ -19,7 +26,22 @@ export interface IUser {
   phone_number?: string;
   country_code?: string;
   account_id?: number;
+  account_details?: IAccountDetails;
 }
+
+export const getUserAccountType = (
+  user?: IUser | null
+): "INDIVIDUAL" | "TEAM" => {
+  const seats = user?.account_details?.max_seat;
+  if (seats && seats > 1) return "TEAM";
+  return "INDIVIDUAL";
+};
+
+export const isTeamAccount = (user?: IUser | null) =>
+  getUserAccountType(user) === "TEAM";
+
+export const isAccountAdmin = (user?: IUser | null) =>
+  user?.account_details?.role?.toUpperCase() === "ADMIN";
 
 export interface LoginResponse {
   access: string;

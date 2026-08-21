@@ -2,7 +2,7 @@
 
 import PageShell from "@/component/PageShell";
 import { useAppSelector } from "@/hook";
-import { Account, getAccount } from "@/services/account";
+import { getUserAccountType } from "@/redux/action/auth";
 import {
   createPaymentAttempt,
   FLUTTERWAVE_PUBLIC_KEY,
@@ -13,11 +13,7 @@ import {
   matchPricingPlan,
   PricingPlan,
 } from "@/services/pricing";
-import {
-  getProfileExtras,
-  getStoredAccount,
-  setStoredAccount,
-} from "@/utils/accountStorage";
+import { getProfileExtras, getStoredAccount } from "@/utils/accountStorage";
 import { createErrorMessage } from "@/utils/errorInstance";
 import { formatPhoneForGateway } from "@/constants/nigeriaLocations";
 import { App, Button, Spin } from "antd";
@@ -33,7 +29,7 @@ const PaymentPage = () => {
   const [loading, setLoading] = useState(false);
   const [pricingLoading, setPricingLoading] = useState(true);
   const [extras, setExtras] = useState<ReturnType<typeof getProfileExtras>>(null);
-  const [account, setAccount] = useState<Account | null>(null);
+  const [accountName, setAccountName] = useState<string | null>(null);
   const [plan, setPlan] = useState<PricingPlan | null>(null);
 
   useEffect(() => {
@@ -42,31 +38,18 @@ const PaymentPage = () => {
 
   useEffect(() => {
     setExtras(getProfileExtras());
+    const storedAccount = getStoredAccount();
+    setAccountName(storedAccount?.name || user?.workplace_name || null);
 
     const load = async () => {
       setPricingLoading(true);
       try {
-        let currentAccount = getStoredAccount();
-        try {
-          const accountRes = await getAccount();
-          const data = accountRes.data as { account?: Account } & Partial<Account>;
-          const nextAccount =
-            data.account || (data.id ? (data as Account) : null);
-          if (nextAccount?.id) {
-            currentAccount = nextAccount;
-            setStoredAccount(nextAccount);
-          }
-        } catch {
-          // Use locally stored account if GET /api/account is unavailable.
-        }
-
-        setAccount(currentAccount);
         const { data: plans } = await getPricing();
         setPlan(
           matchPricingPlan(
             plans,
-            currentAccount?.account_type,
-            currentAccount?.max_seat
+            getUserAccountType(user) || storedAccount?.account_type,
+            user?.account_details?.max_seat || storedAccount?.max_seat
           )
         );
       } catch (err: unknown) {
@@ -83,7 +66,7 @@ const PaymentPage = () => {
     };
 
     load();
-  }, [modal]);
+  }, [modal, user]);
 
   const handlePay = async () => {
     if (!plan) {
@@ -185,8 +168,8 @@ const PaymentPage = () => {
               </p>
             )}
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-[#4F4F4F]">
-              {account
-                ? `For ${account.name}`
+              {accountName
+                ? `For ${accountName}`
                 : "Your subscription keeps the clinical workspace available for your account."}
             </p>
 

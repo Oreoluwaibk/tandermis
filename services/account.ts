@@ -1,5 +1,4 @@
 import axios from "axios";
-import axiosInstance from "@/utils/axiosConfig";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -31,5 +30,3 @@ export interface CreateAccountResponse {
 
 export const createAccount = (payload: CreateAccountPayload) =>
   axios.post<CreateAccountResponse>(`${baseUrl}/api/account`, payload);
-
-export const getAccount = () => axiosInstance.get("/api/account");
