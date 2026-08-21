@@ -8,8 +8,12 @@ import {
 } from "@/services/invitation";
 import { incrementInviteCount } from "@/utils/accountStorage";
 import { createErrorMessage } from "@/utils/errorInstance";
-import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { App, Button, Form, Input, Radio, Select } from "antd";
+import {
+  MinusCircleOutlined,
+  PlusOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
+import { App, Button, Form, Input, Select } from "antd";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
@@ -43,7 +47,9 @@ const InviteTeamPage = () => {
         const res = await sendTeamInvitation(invite);
         results.push(
           `${invite.email}: ${res.data.message}${
-            res.data.expires_at ? ` (expires ${new Date(res.data.expires_at).toLocaleDateString()})` : ""
+            res.data.expires_at
+              ? ` (expires ${new Date(res.data.expires_at).toLocaleDateString()})`
+              : ""
           }`
         );
       }
@@ -98,24 +104,37 @@ const InviteTeamPage = () => {
   if (!isAuthenticated) return null;
 
   return (
-    <PageShell title="Invite your team" backHref="/dermatology">
+    <PageShell
+      title={step === "prompt" ? "Invite your team" : "Send invitations"}
+      subtitle={
+        step === "prompt"
+          ? "Your team account is ready. Invite colleagues to join your workspace, or continue on your own."
+          : "Invite one person or add several colleagues at once."
+      }
+      backHref="/dermatology"
+      centered={step === "prompt"}
+      panel
+    >
       {step === "prompt" ? (
-        <div className="text-center">
-          <p className="text-base leading-relaxed text-[#4F4F4F]">
-            Your team account is ready. Would you like to invite colleagues now?
+        <div className="flex flex-col items-center text-center">
+          <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-r from-[#F7D0FC] to-[#B2FEED] text-2xl text-[#121212]">
+            <TeamOutlined />
+          </div>
+          <p className="max-w-sm text-sm leading-relaxed text-[#4F4F4F] md:text-base">
+            Would you like to invite colleagues now?
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <div className="mt-8 flex w-full max-w-[320px] flex-col gap-3">
             <Button
               type="primary"
               size="large"
-              className="h-14! min-w-[200px] rounded-[40px]! text-base!"
+              className="h-14! rounded-[40px]! text-base!"
               onClick={() => setStep("invite")}
             >
               Yes, invite now
             </Button>
             <Button
               size="large"
-              className="h-14! min-w-[200px] rounded-[40px]! text-base!"
+              className="h-14! rounded-[40px]! text-base!"
               onClick={goToApp}
             >
               No, continue
@@ -123,19 +142,31 @@ const InviteTeamPage = () => {
           </div>
         </div>
       ) : (
-        <div>
-          <p className="mb-6 text-center text-sm text-[#4F4F4F]">
-            Send a single invitation or add multiple colleagues at once.
-          </p>
-
-          <Radio.Group
-            value={mode}
-            onChange={(e) => setMode(e.target.value)}
-            className="mb-6 flex justify-center gap-4"
-          >
-            <Radio.Button value="single">Invite one person</Radio.Button>
-            <Radio.Button value="multiple">Invite multiple</Radio.Button>
-          </Radio.Group>
+        <div className="text-left">
+          <div className="mx-auto mb-6 flex w-full rounded-full bg-[#F5F5F5] p-1">
+            <button
+              type="button"
+              onClick={() => setMode("single")}
+              className={`h-11 flex-1 rounded-full text-sm font-medium transition-colors ${
+                mode === "single"
+                  ? "bg-[#121212] text-white"
+                  : "text-[#4F4F4F]"
+              }`}
+            >
+              Invite one
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("multiple")}
+              className={`h-11 flex-1 rounded-full text-sm font-medium transition-colors ${
+                mode === "multiple"
+                  ? "bg-[#121212] text-white"
+                  : "text-[#4F4F4F]"
+              }`}
+            >
+              Invite multiple
+            </button>
+          </div>
 
           <Form
             form={form}
@@ -166,11 +197,14 @@ const InviteTeamPage = () => {
               <Form.List name="invites">
                 {(fields, { add, remove }) => (
                   <div className="flex flex-col gap-4">
-                    {fields.map((field) => (
+                    {fields.map((field, index) => (
                       <div
                         key={field.key}
-                        className="rounded-2xl border border-[#E8E8E8] p-4"
+                        className="rounded-[20px] bg-[#F7F7F8] p-4 text-left"
                       >
+                        <p className="mb-3 text-sm font-medium text-[#121212]">
+                          Colleague {index + 1}
+                        </p>
                         <Form.Item
                           {...field}
                           name={[field.name, "email"]}
@@ -210,7 +244,7 @@ const InviteTeamPage = () => {
                       type="dashed"
                       onClick={() => add({ role: "MEMBER" })}
                       icon={<PlusOutlined />}
-                      className="h-11!"
+                      className="h-12! rounded-[40px]!"
                     >
                       Add another person
                     </Button>
@@ -219,21 +253,23 @@ const InviteTeamPage = () => {
               </Form.List>
             )}
 
-            <Button
-              type="primary"
-              loading={loading}
-              onClick={handleSubmit}
-              className="mt-6 h-14! w-full rounded-[40px]! text-lg!"
-            >
-              Send invitation{mode === "multiple" ? "s" : ""}
-            </Button>
-            <Button
-              type="link"
-              className="mt-2 w-full text-[#121212]!"
-              onClick={goToApp}
-            >
-              Skip for now
-            </Button>
+            <div className="mt-6 flex flex-col items-center">
+              <Button
+                type="primary"
+                loading={loading}
+                onClick={handleSubmit}
+                className="h-14! w-full rounded-[40px]! text-lg!"
+              >
+                Send invitation{mode === "multiple" ? "s" : ""}
+              </Button>
+              <Button
+                type="link"
+                className="mt-2 text-[#121212]!"
+                onClick={goToApp}
+              >
+                Skip for now
+              </Button>
+            </div>
           </Form>
         </div>
       )}

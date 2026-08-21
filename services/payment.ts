@@ -1,9 +1,5 @@
 import axiosInstance from "@/utils/axiosConfig";
 
-export const SUBSCRIPTION_AMOUNT = Number(
-  process.env.NEXT_PUBLIC_SUBSCRIPTION_AMOUNT ?? 22000
-);
-
 export const FLUTTERWAVE_PUBLIC_KEY =
   process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY ??
   "FLWPUBK_TEST-d641a1dd78d51b651bb754ac8cb235fd-X";

@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Container from "../Container";
-import { App, Button, Form, Input, InputNumber, Radio, Select } from "antd";
+import { App, Button, Form, Input, Radio, Select } from "antd";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { registerUser, SignupPayload } from "@/redux/action/auth";
@@ -18,6 +18,12 @@ import {
 } from "@/constants/nigeriaLocations";
 import { Account, AccountType, createAccount } from "@/services/account";
 import { getTeamInvitation, TeamInvitation } from "@/services/invitation";
+import {
+  formatPlanPrice,
+  getPricing,
+  matchPricingPlan,
+  PricingPlan,
+} from "@/services/pricing";
 import { setProfileExtras, setStoredAccount } from "@/utils/accountStorage";
 
 const FormItem = Form.Item;
@@ -35,8 +41,33 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [invitation, setInvitation] = useState<TeamInvitation | null>(null);
   const [inviteLoading, setInviteLoading] = useState(Boolean(inviteToken));
+  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([]);
   const accountType: AccountType =
     Form.useWatch("account_type", form) || "INDIVIDUAL";
+  const selectedSeats: number | undefined = Form.useWatch("max_seat", form);
+  const teamPlans = pricingPlans
+    .filter((plan) => plan.account_type === "TEAM")
+    .sort((a, b) => a.max_seat - b.max_seat);
+  const selectedPlan = matchPricingPlan(
+    pricingPlans,
+    accountType,
+    accountType === "INDIVIDUAL" ? 1 : selectedSeats
+  );
+
+  useEffect(() => {
+    getPricing()
+      .then((res) => {
+        const plans = res.data || [];
+        setPricingPlans(plans);
+        const defaultTeam = matchPricingPlan(plans, "TEAM", 2);
+        if (defaultTeam) {
+          form.setFieldValue("max_seat", defaultTeam.max_seat);
+        }
+      })
+      .catch(() => {
+        // Signup can continue; payment page will retry pricing later.
+      });
+  }, [form]);
 
   useEffect(() => {
     if (isAuthenticated && !inviteToken) {
@@ -282,21 +313,36 @@ const Signup = () => {
                 <FormItem
                   name="max_seat"
                   label="Maximum seats"
-                  rules={[
-                    { required: true, message: "Enter the number of seats" },
-                    {
-                      type: "number",
-                      min: 2,
-                      message: "Team accounts need at least 2 seats",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "Select the number of seats" }]}
+                  extra={
+                    selectedPlan
+                      ? `${formatPlanPrice(selectedPlan.price, selectedPlan.currency)} / ${selectedPlan.subscription_duration}`
+                      : undefined
+                  }
                 >
-                  <InputNumber
-                    className="h-11! w-full!"
-                    min={2}
-                    placeholder="Minimum of 2"
+                  <Select
+                    placeholder="Select seats"
+                    options={
+                      teamPlans.length
+                        ? teamPlans.map((plan) => ({
+                            value: plan.max_seat,
+                            label: `${plan.max_seat} seats · ${formatPlanPrice(plan.price, plan.currency)} / ${plan.subscription_duration}`,
+                          }))
+                        : [2, 3, 4, 5].map((seats) => ({
+                            value: seats,
+                            label: `${seats} seats`,
+                          }))
+                    }
                   />
                 </FormItem>
+              )}
+
+              {accountType === "INDIVIDUAL" && selectedPlan && (
+                <p className="mb-4 -mt-1 text-sm text-[#4F4F4F]">
+                  Individual plan:{" "}
+                  {formatPlanPrice(selectedPlan.price, selectedPlan.currency)} /{" "}
+                  {selectedPlan.subscription_duration}
+                </p>
               )}
 
               <FormItem
@@ -524,7 +570,7 @@ const Signup = () => {
               htmlType="submit"
               className="text-white text-lg! w-full rounded-[40px]! h-14!"
               loading={loading || inviteLoading}
-              disabled
+              // disabled
             >
               Register
             </Button>
@@ -535,7 +581,7 @@ const Signup = () => {
             <Link
               href={
                 inviteToken
-                  ? `/auth/login?next=${encodeURIComponent(`/invite?token=${inviteToken}`)}`
+                  ? `/auth/login?next=${encodeURIComponent(`/team-invitation?token=${inviteToken}`)}`
                   : next === "/dermatology"
                     ? "/auth/login"
                     : `/auth/login?next=${encodeURIComponent(next)}`

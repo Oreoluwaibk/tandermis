@@ -1,5 +1,6 @@
 "use client";
 
+import { SuccessCheck } from "@/component/dashboard/icons";
 import PageShell from "@/component/PageShell";
 import { useAppSelector } from "@/hook";
 import { verifyFlutterwaveTransaction } from "@/services/payment";
@@ -76,21 +77,27 @@ const CallbackContent = () => {
   const isPending = result?.status?.toUpperCase() === "PENDING";
 
   return (
-    <PageShell title="Payment status" backHref="/profile">
+    <PageShell
+      title={loading ? "Payment status" : undefined}
+      backHref="/profile"
+      centered
+      panel
+    >
       {loading ? (
-        <div className="flex justify-center py-16">
+        <div className="flex justify-center py-10">
           <Spin size="large" />
         </div>
       ) : (
-        <div className="text-center">
-          <p className="text-lg font-semibold text-[#121212]">
+        <div className="flex flex-col items-center text-center">
+          {isSuccess && <SuccessCheck />}
+          <p className="mt-4 text-2xl font-semibold text-[#121212]">
             {isSuccess
               ? "Payment successful"
               : isPending
                 ? "Payment pending"
                 : "Payment not completed"}
           </p>
-          <p className="mt-3 text-sm text-[#4F4F4F]">
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-[#4F4F4F] md:text-base">
             {result?.subscription_valid_to}
           </p>
           {result?.reference && (
@@ -100,7 +107,7 @@ const CallbackContent = () => {
           )}
           <Button
             type="primary"
-            className="mt-8 h-14! min-w-[240px] rounded-[40px]! text-lg!"
+            className="mt-8 h-14! w-full max-w-[280px] rounded-[40px]! text-lg!"
             onClick={() =>
               router.push(isSuccess ? "/dermatology" : "/payment")
             }
@@ -116,8 +123,8 @@ const CallbackContent = () => {
 const PaymentCallbackPage = () => (
   <Suspense
     fallback={
-      <PageShell title="Payment status">
-        <div className="flex justify-center py-16">
+      <PageShell title="Payment status" centered panel>
+        <div className="flex justify-center py-10">
           <Spin size="large" />
         </div>
       </PageShell>

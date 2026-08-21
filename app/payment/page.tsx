@@ -2,15 +2,25 @@
 
 import PageShell from "@/component/PageShell";
 import { useAppSelector } from "@/hook";
+import { Account, getAccount } from "@/services/account";
 import {
   createPaymentAttempt,
   FLUTTERWAVE_PUBLIC_KEY,
-  SUBSCRIPTION_AMOUNT,
 } from "@/services/payment";
-import { getProfileExtras, getStoredAccount } from "@/utils/accountStorage";
+import {
+  formatPlanPrice,
+  getPricing,
+  matchPricingPlan,
+  PricingPlan,
+} from "@/services/pricing";
+import {
+  getProfileExtras,
+  getStoredAccount,
+  setStoredAccount,
+} from "@/utils/accountStorage";
 import { createErrorMessage } from "@/utils/errorInstance";
 import { formatPhoneForGateway } from "@/constants/nigeriaLocations";
-import { App, Button } from "antd";
+import { App, Button, Spin } from "antd";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -21,8 +31,10 @@ const PaymentPage = () => {
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const [scriptReady, setScriptReady] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pricingLoading, setPricingLoading] = useState(true);
   const [extras, setExtras] = useState<ReturnType<typeof getProfileExtras>>(null);
-  const [account, setAccount] = useState<ReturnType<typeof getStoredAccount>>(null);
+  const [account, setAccount] = useState<Account | null>(null);
+  const [plan, setPlan] = useState<PricingPlan | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) router.push("/auth/login?next=/payment");
@@ -30,10 +42,58 @@ const PaymentPage = () => {
 
   useEffect(() => {
     setExtras(getProfileExtras());
-    setAccount(getStoredAccount());
-  }, []);
+
+    const load = async () => {
+      setPricingLoading(true);
+      try {
+        let currentAccount = getStoredAccount();
+        try {
+          const accountRes = await getAccount();
+          const data = accountRes.data as { account?: Account } & Partial<Account>;
+          const nextAccount =
+            data.account || (data.id ? (data as Account) : null);
+          if (nextAccount?.id) {
+            currentAccount = nextAccount;
+            setStoredAccount(nextAccount);
+          }
+        } catch {
+          // Use locally stored account if GET /api/account is unavailable.
+        }
+
+        setAccount(currentAccount);
+        const { data: plans } = await getPricing();
+        setPlan(
+          matchPricingPlan(
+            plans,
+            currentAccount?.account_type,
+            currentAccount?.max_seat
+          )
+        );
+      } catch (err: unknown) {
+        const error = err as { response?: { data?: unknown }; message?: string };
+        modal.error({
+          title: "Unable to load pricing",
+          content: error?.response
+            ? createErrorMessage(error.response.data)
+            : error.message,
+        });
+      } finally {
+        setPricingLoading(false);
+      }
+    };
+
+    load();
+  }, [modal]);
 
   const handlePay = async () => {
+    if (!plan) {
+      modal.error({
+        title: "Pricing unavailable",
+        content: "We could not load a matching plan for your account.",
+      });
+      return;
+    }
+
     if (!window.FlutterwaveCheckout) {
       modal.error({
         title: "Payment unavailable",
@@ -44,7 +104,7 @@ const PaymentPage = () => {
 
     setLoading(true);
     try {
-      const res = await createPaymentAttempt(SUBSCRIPTION_AMOUNT);
+      const res = await createPaymentAttempt(plan.price);
       const { reference, amount } = res.data;
       const origin = window.location.origin;
       const fullName = user
@@ -54,8 +114,8 @@ const PaymentPage = () => {
       window.FlutterwaveCheckout({
         public_key: FLUTTERWAVE_PUBLIC_KEY,
         tx_ref: reference,
-        amount: Number(amount ?? SUBSCRIPTION_AMOUNT),
-        currency: "NGN",
+        amount: Number(amount ?? plan.price),
+        currency: plan.currency || "NGN",
         payment_options: "card, banktransfer, ussd, mobilemoney",
         redirect_url: `${origin}/payment/callback`,
         customer: {
@@ -98,36 +158,57 @@ const PaymentPage = () => {
         strategy="afterInteractive"
         onLoad={() => setScriptReady(true)}
       />
-      <PageShell title="Subscription payment" backHref="/profile">
-        <div className="rounded-3xl bg-[#F7F7F8] p-6 text-center">
-          <p className="text-sm text-[#4F4F4F]">Amount due</p>
-          <p className="mt-2 text-3xl font-semibold text-[#121212]">
-            ₦{SUBSCRIPTION_AMOUNT.toLocaleString()}
-          </p>
-          <p className="mt-3 text-sm text-[#4F4F4F]">
-            {account
-              ? `For ${account.name} (${account.account_type.toLowerCase()} account)`
-              : "Complete payment to activate your Tandermis subscription."}
-          </p>
-        </div>
+      <PageShell
+        title="Subscription payment"
+        subtitle="Complete payment to activate your Tandermis subscription."
+        backHref="/profile"
+        centered
+        panel
+      >
+        {pricingLoading ? (
+          <div className="flex justify-center py-10">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center text-center">
+            <p className="text-sm text-[#4F4F4F]">Amount due</p>
+            <p className="mt-2 text-4xl font-semibold text-[#121212]">
+              {plan
+                ? formatPlanPrice(plan.price, plan.currency)
+                : "Pricing unavailable"}
+            </p>
+            {plan && (
+              <p className="mt-2 text-sm text-[#4F4F4F]">
+                {plan.account_type === "INDIVIDUAL" ? "Individual" : "Team"} ·{" "}
+                {plan.max_seat} seat{plan.max_seat === 1 ? "" : "s"} ·{" "}
+                {plan.subscription_duration}
+              </p>
+            )}
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-[#4F4F4F]">
+              {account
+                ? `For ${account.name}`
+                : "Your subscription keeps the clinical workspace available for your account."}
+            </p>
 
-        <Button
-          type="primary"
-          size="large"
-          loading={loading}
-          disabled={!scriptReady}
-          onClick={handlePay}
-          className="mt-8 h-14! w-full rounded-[40px]! text-lg!"
-        >
-          Pay now
-        </Button>
-        <Button
-          type="link"
-          className="mt-2 w-full text-[#121212]!"
-          onClick={() => router.push("/dermatology")}
-        >
-          Continue without paying
-        </Button>
+            <Button
+              type="primary"
+              size="large"
+              loading={loading}
+              disabled={!scriptReady || !plan}
+              onClick={handlePay}
+              className="mt-8 h-14! w-full max-w-[320px] rounded-[40px]! text-lg!"
+            >
+              Pay now
+            </Button>
+            <Button
+              type="link"
+              className="mt-2 text-[#121212]!"
+              onClick={() => router.push("/dermatology")}
+            >
+              Continue without paying
+            </Button>
+          </div>
+        )}
       </PageShell>
     </>
   );
