@@ -7,6 +7,7 @@ import { ArrowRightOutlined } from "@ant-design/icons";
 import { Button, Col, Form, Input, Row, Select } from "antd";
 import { RcFile } from "antd/es/upload";
 import React from "react";
+import { AFTER_HOURS_EMAIL } from "@/utils/serviceHours";
 import { CaseFormData } from "./types";
 
 const { Option } = Select;
@@ -18,6 +19,7 @@ interface DataCollectionFormProps {
   onSubmit: () => void;
   loading?: boolean;
   variant?: "research" | "general";
+  serviceUnavailable?: boolean;
 }
 
 const fieldSelectProps = {
@@ -33,6 +35,7 @@ const DataCollectionForm = ({
   onSubmit,
   loading,
   variant = "research",
+  serviceUnavailable = false,
 }: DataCollectionFormProps) => {
   const isGeneral = variant === "general";
 
@@ -44,6 +47,8 @@ const DataCollectionForm = ({
     formData.lesionDuration &&
     formData.isLesionItchy &&
     (isGeneral || formData.fitzpatrickSkinType);
+
+  const canSubmit = isComplete && !serviceUnavailable;
 
   return (
     <div className="mx-auto w-full max-w-[860px]">
@@ -268,23 +273,39 @@ const DataCollectionForm = ({
               </Row>
             </Form>
 
-            <div className="mt-5 flex justify-end md:mt-6">
-              <Button
-                type="primary"
-                loading={loading}
-                disabled={!isComplete}
-                onClick={onSubmit}
-                className={`h-12! w-full rounded-[40px]! text-sm! font-medium! md:h-14! md:w-[405px]! md:text-base! ${
-                  isComplete
-                    ? "bg-[#121212]! border-[#121212]!"
-                    : "bg-[#A0A0A0]! text-white! border-[#A0A0A0]! cursor-not-allowed!"
-                }`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  Get AI Diagnosis
-                  <ArrowRightOutlined />
-                </span>
-              </Button>
+            <div className="mt-5 md:mt-6">
+              {serviceUnavailable && (
+                <div className="mb-4 rounded-[20px] bg-[#FFF6E8] px-4 py-3 text-center text-sm leading-relaxed text-[#4F4F4F] md:px-5 md:py-4">
+                  Our diagnosis service is unavailable from 5:00 PM to 7:59 AM
+                  (WAT) to keep costs down. Please try again from 8:00 AM. To
+                  request access during these hours, email{" "}
+                  <a
+                    href={`mailto:${AFTER_HOURS_EMAIL}`}
+                    className="font-semibold text-[#121212] underline"
+                  >
+                    {AFTER_HOURS_EMAIL}
+                  </a>
+                  .
+                </div>
+              )}
+              <div className="flex justify-end">
+                <Button
+                  type="primary"
+                  loading={loading}
+                  disabled={!canSubmit}
+                  onClick={onSubmit}
+                  className={`h-12! w-full rounded-[40px]! text-sm! font-medium! md:h-14! md:w-[405px]! md:text-base! ${
+                    canSubmit
+                      ? "bg-[#121212]! border-[#121212]!"
+                      : "bg-[#A0A0A0]! text-white! border-[#A0A0A0]! cursor-not-allowed!"
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    Get AI Diagnosis
+                    <ArrowRightOutlined />
+                  </span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>

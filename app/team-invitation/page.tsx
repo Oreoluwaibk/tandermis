@@ -4,14 +4,13 @@ import PageShell from "@/component/PageShell";
 import { useAppSelector } from "@/hook";
 import { Account } from "@/services/account";
 import {
-  acceptTeamInvitation,
   getTeamInvitation,
   TeamInvitation,
 } from "@/services/invitation";
 import { setStoredAccount } from "@/utils/accountStorage";
 import { createErrorMessage } from "@/utils/errorInstance";
 import { MailOutlined, TeamOutlined } from "@ant-design/icons";
-import { App, Button, Spin } from "antd";
+import { Button, Spin } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense, useEffect, useState } from "react";
 
@@ -19,10 +18,8 @@ const InviteContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
-  const { modal } = App.useApp();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const [loading, setLoading] = useState(true);
-  const [accepting, setAccepting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [invitation, setInvitation] = useState<TeamInvitation | null>(null);
 
@@ -67,24 +64,17 @@ const InviteContent = () => {
     setStoredAccount(account);
   };
 
-  const handleAcceptExisting = async () => {
-    if (!invitation) return;
-    setAccepting(true);
-    try {
-      await acceptTeamInvitation(token);
-      storeInvitationAccount(invitation);
-      router.push("/dermatology");
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: unknown }; message?: string };
-      modal.error({
-        title: "Unable to accept invitation",
-        content: error?.response
-          ? createErrorMessage(error.response.data)
-          : error.message,
-      });
-    } finally {
-      setAccepting(false);
+  const goToSignup = () =>
+    router.push(`/auth/signup?invite_token=${encodeURIComponent(token)}`);
+
+  const goToExistingUserFlow = () => {
+    if (invitation) storeInvitationAccount(invitation);
+    const updatePath = `/team-invitation/update?token=${encodeURIComponent(token)}`;
+    if (isAuthenticated) {
+      router.push(updatePath);
+      return;
     }
+    router.push(`/auth/login?next=${encodeURIComponent(updatePath)}`);
   };
 
   if (loading) {
@@ -160,21 +150,13 @@ const InviteContent = () => {
               <Button
                 type="primary"
                 className="h-14! rounded-[40px]! text-base!"
-                onClick={() =>
-                  router.push(
-                    `/auth/signup?invite_token=${encodeURIComponent(token)}`
-                  )
-                }
+                onClick={goToSignup}
               >
                 Accept invite and sign up
               </Button>
               <Button
                 className="h-14! rounded-[40px]! text-base!"
-                onClick={() =>
-                  router.push(
-                    `/auth/login?next=${encodeURIComponent(`/team-invitation?token=${token}`)}`
-                  )
-                }
+                onClick={goToExistingUserFlow}
               >
                 I already have an account
               </Button>
@@ -182,9 +164,8 @@ const InviteContent = () => {
           ) : (
             <Button
               type="primary"
-              loading={accepting}
               className="h-14! rounded-[40px]! text-base!"
-              onClick={handleAcceptExisting}
+              onClick={goToExistingUserFlow}
             >
               Accept invite and update my details
             </Button>

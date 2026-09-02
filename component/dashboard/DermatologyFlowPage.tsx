@@ -32,6 +32,9 @@ import {
   submitReviewerFeedback,
 } from "@/services/dermatology";
 import { createErrorMessage } from "@/utils/errorInstance";
+import { useServiceHours } from "@/utils/serviceHours";
+import { hasValidSubscription } from "@/utils/subscription";
+import SubscriptionGate from "@/component/dashboard/SubscriptionGate";
 import { MenuOutlined } from "@ant-design/icons";
 import { App, Button } from "antd";
 import { useRouter } from "next/navigation";
@@ -73,6 +76,8 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
   const { modal } = App.useApp();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const refreshToken = useAppSelector(selectedRefresh);
+  const serviceAvailable = useServiceHours();
+  const subscribed = hasValidSubscription(user);
 
   const [view, setView] = useState<DashboardView>("form");
   const [formData, setFormData] = useState<CaseFormData>(emptyFormData());
@@ -268,6 +273,22 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
   };
 
   const handleGetDiagnosis = async () => {
+    if (!hasValidSubscription(user)) {
+      modal.warning({
+        title: "Subscription required",
+        content: "A valid subscription is needed to get a diagnosis.",
+      });
+      return;
+    }
+
+    if (!serviceAvailable) {
+      modal.info({
+        title: "Service unavailable",
+        content:
+          "Diagnosis is unavailable from 5:00 PM to 7:59 AM (WAT). Please try again from 8:00 AM.",
+      });
+      return;
+    }
     const caseId = crypto.randomUUID();
     const label = formatCaseLabel(new Date());
     const processingStartedAt = Date.now();
@@ -425,6 +446,10 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
   };
 
   const renderMainContent = () => {
+    if (!subscribed) {
+      return <SubscriptionGate />;
+    }
+
     if (view === "form") {
       return (
         <DataCollectionForm
@@ -433,6 +458,7 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
           onSubmit={handleGetDiagnosis}
           loading={submitting}
           variant={mode}
+          serviceUnavailable={!serviceAvailable}
         />
       );
     }
@@ -532,7 +558,11 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
             <span className="h-10 w-10" aria-hidden />
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-4 pb-6 md:px-12 md:pb-10 md:pt-8">
+        <div
+          className={`flex-1 overflow-y-auto px-4 pb-6 md:px-12 md:pb-10 md:pt-8 ${
+            subscribed ? "" : "flex items-center justify-center"
+          }`}
+        >
           {renderMainContent()}
         </div>
       </main>

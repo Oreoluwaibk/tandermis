@@ -592,7 +592,7 @@ const Signup = () => {
             <Link
               href={
                 inviteToken
-                  ? `/auth/login?next=${encodeURIComponent(`/team-invitation?token=${inviteToken}`)}`
+                  ? `/auth/login?next=${encodeURIComponent(`/team-invitation/update?token=${inviteToken}`)}`
                   : next === "/dermatology"
                     ? "/auth/login"
                     : `/auth/login?next=${encodeURIComponent(next)}`

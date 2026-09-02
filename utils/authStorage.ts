@@ -1,5 +1,6 @@
 import { IUser } from "@/redux/action/auth";
 import { clearAccountStorage } from "@/utils/accountStorage";
+import { clearPendingReauth } from "@/utils/pendingReauth";
 
 const USER_KEY = "tandermis_user";
 const TOKEN_KEY = "tandermis_token";
@@ -61,6 +62,7 @@ export const clearAuthStorage = () => {
   localStorage.removeItem(REFRESH_KEY);
   localStorage.removeItem(CONTRIBUTOR_KEY);
   clearAccountStorage();
+  clearPendingReauth();
 };
 
 export const setContributorFlag = () => {

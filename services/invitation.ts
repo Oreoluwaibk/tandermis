@@ -46,5 +46,13 @@ export const getTeamInvitation = (token: string) =>
 export const sendTeamInvitation = (payload: SendInvitationPayload) =>
   axiosInstance.post<SendInvitationResponse>("/api/team-invitation", payload);
 
-export const acceptTeamInvitation = (token: string) =>
-  axiosInstance.post("/api/team-invitation/accept", { token });
+export interface AccountMembershipResponse {
+  message: string;
+  account_id: number;
+  role: string;
+}
+
+export const updateAccountMembership = (inviteToken: string) =>
+  axiosInstance.patch<AccountMembershipResponse>("/api/account-members", {
+    invite_token: inviteToken,
+  });

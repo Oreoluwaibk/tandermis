@@ -8,6 +8,7 @@ import { login } from "@/redux/action/auth";
 import { loginAction } from "@/redux/reducer/auth/auth";
 import { createErrorMessage } from "@/utils/errorInstance";
 import { getSafeRedirect } from "@/utils/safeRedirect";
+import { setPendingReauth } from "@/utils/pendingReauth";
 import { useAppDispatch } from "@/hook";
 
 const FormItem = Form.Item;
@@ -29,6 +30,7 @@ const Login = () => {
         login(values)
           .then((res) => {
             if (res.status === 200) {
+              setPendingReauth(values.email, values.password);
               dispatch(
                 loginAction({
                   token: {
