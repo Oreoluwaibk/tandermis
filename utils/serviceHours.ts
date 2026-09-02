@@ -4,7 +4,7 @@ export const SERVICE_TIMEZONE = "Africa/Lagos";
 export const SERVICE_OPENS_AT = "8:00 AM";
 export const SERVICE_CLOSES_AT = "5:00 PM";
 export const AFTER_HOURS_EMAIL =
-  process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "hello@tandermis.com";
+  process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "tandermis@gmail.com";
 
 const getLagosHour = (now = new Date()) => {
   const hourPart = new Intl.DateTimeFormat("en-GB", {
