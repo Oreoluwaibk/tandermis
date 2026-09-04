@@ -8,6 +8,7 @@ import {
   FLUTTERWAVE_PUBLIC_KEY,
 } from "@/services/payment";
 import {
+  extractPricingPlans,
   formatPlanPrice,
   getPricing,
   matchPricingPlan,
@@ -44,7 +45,8 @@ const PaymentPage = () => {
     const load = async () => {
       setPricingLoading(true);
       try {
-        const { data: plans } = await getPricing();
+        const { data } = await getPricing();
+        const plans = extractPricingPlans(data);
         setPlan(
           matchPricingPlan(
             plans,
@@ -69,10 +71,10 @@ const PaymentPage = () => {
   }, [modal, user]);
 
   const handlePay = async () => {
-    if (!plan) {
+    if (!plan || !plan.currency) {
       modal.error({
         title: "Pricing unavailable",
-        content: "We could not load a matching plan for your account.",
+        content: "We could not load a matching paid plan for your account.",
       });
       return;
     }
@@ -98,8 +100,8 @@ const PaymentPage = () => {
         public_key: FLUTTERWAVE_PUBLIC_KEY,
         tx_ref: reference,
         amount: Number(amount ?? plan.price),
-        currency: plan.currency || "NGN",
-        payment_options: "card, banktransfer, ussd, mobilemoney",
+        currency: plan.currency,
+        payment_options: "card, banktransfer, ussd, mobilemoney, opay",
         redirect_url: `${origin}/payment/callback`,
         customer: {
           email: user?.email || "",
@@ -144,7 +146,7 @@ const PaymentPage = () => {
       <PageShell
         title="Subscription payment"
         subtitle="Complete payment to activate your Tandermis subscription."
-        backHref="/profile"
+        backHref="/pricing"
         centered
         panel
       >
@@ -186,6 +188,13 @@ const PaymentPage = () => {
             <Button
               type="link"
               className="mt-2 text-[#121212]!"
+              onClick={() => router.push("/pricing")}
+            >
+              See all plans
+            </Button>
+            <Button
+              type="link"
+              className="text-[#121212]!"
               onClick={() => router.push("/dermatology")}
             >
               Continue without paying

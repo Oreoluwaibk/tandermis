@@ -3,10 +3,10 @@
 import { SuccessCheck } from "@/component/dashboard/icons";
 import PageShell from "@/component/PageShell";
 import { useAppDispatch, useAppSelector } from "@/hook";
-import { IUser } from "@/redux/action/auth";
 import { setUser } from "@/redux/reducer/auth/auth";
 import { verifyFlutterwaveTransaction } from "@/services/payment";
 import { setStoredSubscription } from "@/utils/accountStorage";
+import { applySubscriptionToUser } from "@/utils/subscription";
 import { createErrorMessage } from "@/utils/errorInstance";
 import {
   formatPaymentStatus,
@@ -67,16 +67,11 @@ const CallbackContent = () => {
         setResult(res.data);
         setStoredSubscription(res.data);
         if (user && res.data.status?.toUpperCase() === "SUCCESS") {
-          const updatedUser: IUser = {
-            ...user,
-            account_details: user.account_details
-              ? {
-                  ...user.account_details,
-                  subscription_valid_to: res.data.subscription_valid_to,
-                }
-              : user.account_details,
-          };
-          dispatch(setUser(updatedUser));
+          dispatch(
+            setUser(
+              applySubscriptionToUser(user, res.data.subscription_valid_to)
+            )
+          );
         }
       })
       .catch((err) => {

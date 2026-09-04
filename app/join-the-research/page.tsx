@@ -64,6 +64,11 @@ function JoinTheResearchContent() {
   return (
     <JoinResearchLanding
       onJoinClick={handleJoinResearch}
+      onViewPlans={() =>
+        startTransition(() => {
+          router.push("/pricing");
+        })
+      }
       loading={isPending || contributorLoading}
     />
   );

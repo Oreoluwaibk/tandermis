@@ -34,7 +34,15 @@ function HomeContent() {
   };
 
   return (
-    <JoinResearchLanding onJoinClick={handleRedirect} loading={isPending} />
+    <JoinResearchLanding
+      onJoinClick={handleRedirect}
+      onViewPlans={() =>
+        startTransition(() => {
+          router.push("/pricing");
+        })
+      }
+      loading={isPending}
+    />
   );
 }
 

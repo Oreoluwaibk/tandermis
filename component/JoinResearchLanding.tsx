@@ -6,11 +6,13 @@ import React from "react";
 
 interface JoinResearchLandingProps {
   onJoinClick: () => void;
+  onViewPlans?: () => void;
   loading?: boolean;
 }
 
 const JoinResearchLanding = ({
   onJoinClick,
+  onViewPlans,
   loading,
 }: JoinResearchLandingProps) => (
   <div className="linear-background relative flex min-h-screen w-full flex-col items-center justify-center bg-cover bg-no-repeat font-sans">
@@ -37,13 +39,24 @@ const JoinResearchLanding = ({
         conditions early and accurately. Your medical expertise and verified
         image data can help save lives through better diagnostics.
       </p>
-      <RoundBtn
-        title="Join the Research"
-        type="primary"
-        icon={<ArrowRightOutlined />}
-        onClick={onJoinClick}
-        loading={loading}
-      />
+      <div className="flex flex-col items-center gap-3">
+        <RoundBtn
+          title="Join the Research"
+          type="primary"
+          icon={<ArrowRightOutlined />}
+          onClick={onJoinClick}
+          loading={loading}
+        />
+        {onViewPlans && (
+          <button
+            type="button"
+            onClick={onViewPlans}
+            className="text-sm font-semibold text-[#121212] underline underline-offset-4 md:text-base"
+          >
+            View plans and pricing
+          </button>
+        )}
+      </div>
     </main>
   </div>
 );

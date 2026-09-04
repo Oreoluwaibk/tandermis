@@ -1,13 +1,10 @@
-const isIsoDate = (value: string) => {
-  if (!/^\d{4}-\d{2}-\d{2}T/.test(value)) return false;
-  return !Number.isNaN(new Date(value).getTime());
-};
+import { parseApiDate } from "@/utils/subscription";
 
 export const formatReadableDate = (value?: string | null) => {
-  if (!value) return "";
-  if (!isIsoDate(value)) return value;
+  const date = parseApiDate(value);
+  if (!date) return value || "";
 
-  return new Date(value).toLocaleString("en-GB", {
+  return date.toLocaleString("en-GB", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -32,6 +29,6 @@ export const formatPaymentStatus = (status?: string) => {
 
 export const formatSubscriptionSummary = (value?: string | null) => {
   if (!value) return "Your subscription was not successful.";
-  if (!isIsoDate(value)) return value;
+  if (!parseApiDate(value)) return value;
   return `Your subscription is valid until ${formatReadableDate(value)}.`;
 };

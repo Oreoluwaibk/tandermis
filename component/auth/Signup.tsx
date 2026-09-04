@@ -4,8 +4,8 @@ import Container from "../Container";
 import { App, Button, Form, Input, Radio, Select } from "antd";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { registerUser, SignupPayload } from "@/redux/action/auth";
-import { loginAction } from "@/redux/reducer/auth/auth";
+import { IUser, registerUser, SignupPayload } from "@/redux/action/auth";
+import { loginAction, setUser } from "@/redux/reducer/auth/auth";
 import { createErrorMessage } from "@/utils/errorInstance";
 import { getSafeRedirect } from "@/utils/safeRedirect";
 import { useAppDispatch, useAppSelector } from "@/hook";
@@ -19,12 +19,15 @@ import {
 import { Account, AccountType, createAccount } from "@/services/account";
 import { getTeamInvitation, TeamInvitation } from "@/services/invitation";
 import {
+  extractPricingPlans,
   formatPlanPrice,
   getPricing,
   matchPricingPlan,
   PricingPlan,
 } from "@/services/pricing";
+import { requestFreeTrial } from "@/services/trial";
 import { setProfileExtras, setStoredAccount } from "@/utils/accountStorage";
+import { applySubscriptionToUser } from "@/utils/subscription";
 
 const FormItem = Form.Item;
 
@@ -34,6 +37,12 @@ const Signup = () => {
   const next = getSafeRedirect(searchParams.get("next"));
   const inviteToken =
     searchParams.get("invite_token") || searchParams.get("token");
+  const requestedPlan = searchParams.get("plan");
+  const requestedAccountType = searchParams.get("account_type") as
+    | AccountType
+    | null;
+  const requestedSeats = searchParams.get("max_seat");
+  const startTrial = requestedPlan === "free";
   const { modal } = App.useApp();
   const dispatch = useAppDispatch();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -51,23 +60,34 @@ const Signup = () => {
   const selectedPlan = matchPricingPlan(
     pricingPlans,
     accountType,
-    accountType === "INDIVIDUAL" ? 1 : selectedSeats
+    accountType === "INDIVIDUAL" ? undefined : selectedSeats
   );
 
   useEffect(() => {
     getPricing()
       .then((res) => {
-        const plans = res.data || [];
+        const plans = extractPricingPlans(res.data);
         setPricingPlans(plans);
-        const defaultTeam = matchPricingPlan(plans, "TEAM", 2);
+        const preferredType = requestedAccountType || "TEAM";
+        const preferredSeats = requestedSeats
+          ? Number(requestedSeats)
+          : undefined;
+        const defaultTeam = matchPricingPlan(
+          plans,
+          preferredType,
+          preferredSeats
+        );
         if (defaultTeam) {
           form.setFieldValue("max_seat", defaultTeam.max_seat);
+        }
+        if (requestedAccountType) {
+          form.setFieldValue("account_type", requestedAccountType);
         }
       })
       .catch(() => {
         // Signup can continue; payment page will retry pricing later.
       });
-  }, [form]);
+  }, [form, requestedAccountType, requestedSeats]);
 
   useEffect(() => {
     if (isAuthenticated && !inviteToken) {
@@ -154,13 +174,21 @@ const Signup = () => {
         : null;
 
       if (!accountId) {
+        if (account_type === "TEAM" && !Number(max_seat)) {
+          modal.error({
+            title: "Select seats",
+            content:
+              "Choose a team size from the available plans before continuing.",
+          });
+          return;
+        }
         const accountName =
           account_name ||
           `${userFields.first_name} ${userFields.last_name}`.trim();
         const accountRes = await createAccount({
           name: accountName,
           account_type,
-          max_seat: account_type === "INDIVIDUAL" ? 1 : Number(max_seat) || 2,
+          max_seat: account_type === "INDIVIDUAL" ? 1 : Number(max_seat),
           address: account_address,
           state: account_state,
           country: account_country,
@@ -196,7 +224,7 @@ const Signup = () => {
       };
 
       const res = await registerUser(payload);
-      if (res.status === 201) {
+      if (res.status === 200 || res.status === 201) {
         const { user, tokens } = res.data;
         setProfileExtras({
           phone_number: payload.phone_number,
@@ -209,26 +237,66 @@ const Signup = () => {
           job_title: payload.job_title,
           workplace_name: payload.workplace_name,
         });
+        let signedInUser: IUser = {
+          ...user,
+          account_details: user.account_details ||
+            (createdAccount
+              ? {
+                  account_id: createdAccount.id,
+                  role: "ADMIN",
+                  max_seat: createdAccount.max_seat,
+                  subscription_valid_to: null,
+                }
+              : undefined),
+        };
+
         await dispatch(
           loginAction({
             token: tokens,
-            user: {
-              ...user,
-              account_details: user.account_details ||
-                (createdAccount
-                  ? {
-                      account_id: createdAccount.id,
-                      role: "ADMIN",
-                      max_seat: createdAccount.max_seat,
-                      subscription_valid_to: null,
-                    }
-                  : undefined),
-            },
+            user: signedInUser,
           })
         );
 
+        if (!inviteToken && startTrial) {
+          try {
+            const result = await requestFreeTrial();
+            if (result.expiry) {
+              signedInUser = applySubscriptionToUser(
+                signedInUser,
+                result.expiry
+              );
+              dispatch(setUser(signedInUser));
+            }
+            if (!result.activated) {
+              modal.warning({
+                title: "Account created",
+                content: result.message,
+              });
+            }
+          } catch (trialErr: unknown) {
+            const error = trialErr as {
+              response?: { data?: unknown };
+              message?: string;
+            };
+            modal.warning({
+              title: "Account created",
+              content: error?.response
+                ? createErrorMessage(error.response.data)
+                : "Your account was created, but the free trial could not be started. You can start it from the pricing page.",
+            });
+          }
+        }
+
         if (inviteToken) {
           router.push(next);
+        } else if (startTrial) {
+          router.push(
+            createdAccount?.account_type === "TEAM"
+              ? "/invite-team"
+              : "/dermatology"
+          );
+        } else if (next === "/payment" || next.startsWith("/payment")) {
+          router.push("/payment");
         } else if (createdAccount?.account_type === "TEAM") {
           router.push("/invite-team");
         } else {
@@ -259,7 +327,9 @@ const Signup = () => {
         <p className="mt-1 text-center text-sm text-[#4F4F4F] sm:text-base">
           {invitation
             ? `Join ${invitation.account_name} to start contributing`
-            : "Create your account to save and record clinical contributions"}
+            : startTrial
+              ? "Create your account to start the free trial"
+              : "Create your account to save and record clinical contributions"}
         </p>
 
         {invitation && (
@@ -280,8 +350,7 @@ const Signup = () => {
             country_code: "234",
             country: "Nigeria",
             account_country: "Nigeria",
-            account_type: "INDIVIDUAL",
-            max_seat: 2,
+            account_type: requestedAccountType || "INDIVIDUAL",
           }}
         >
           {!invitation && (
@@ -328,22 +397,15 @@ const Signup = () => {
                   extra={
                     selectedPlan
                       ? `${formatPlanPrice(selectedPlan.price, selectedPlan.currency)} / ${selectedPlan.subscription_duration}`
-                      : undefined
+                      : "Seat options load from current pricing."
                   }
                 >
                   <Select
                     placeholder="Select seats"
-                    options={
-                      teamPlans.length
-                        ? teamPlans.map((plan) => ({
-                            value: plan.max_seat,
-                            label: `${plan.max_seat} seats · ${formatPlanPrice(plan.price, plan.currency)} / ${plan.subscription_duration}`,
-                          }))
-                        : [2, 3, 4, 5].map((seats) => ({
-                            value: seats,
-                            label: `${seats} seats`,
-                          }))
-                    }
+                    options={teamPlans.map((plan) => ({
+                      value: plan.max_seat,
+                      label: `${plan.max_seat} seats · ${formatPlanPrice(plan.price, plan.currency)} / ${plan.subscription_duration}`,
+                    }))}
                   />
                 </FormItem>
               )}
@@ -593,7 +655,9 @@ const Signup = () => {
               href={
                 inviteToken
                   ? `/auth/login?next=${encodeURIComponent(`/team-invitation/update?token=${inviteToken}`)}`
-                  : next === "/dermatology"
+                  : startTrial
+                    ? "/auth/login?next=/pricing"
+                    : next === "/dermatology"
                     ? "/auth/login"
                     : `/auth/login?next=${encodeURIComponent(next)}`
               }
@@ -601,6 +665,13 @@ const Signup = () => {
             >
               Sign in
             </Link>
+          </p>
+          <p className="mt-3 text-center text-sm text-[#4F4F4F]">
+            Compare all plans, including the free trial, on the{" "}
+            <Link href="/pricing" className="font-semibold text-[#121212]!">
+              pricing page
+            </Link>
+            .
           </p>
         </Form>
       </div>

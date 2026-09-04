@@ -124,6 +124,13 @@ const Login = () => {
               Sign up
             </Link>
           </p>
+          <p className="mt-3 text-center text-sm text-[#4F4F4F]">
+            See every plan, including the free trial, on the{" "}
+            <Link href="/pricing" className="font-semibold text-[#121212]!">
+              pricing page
+            </Link>
+            .
+          </p>
         </Form>
       </div>
     </Container>

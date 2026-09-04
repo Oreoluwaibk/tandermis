@@ -2,6 +2,7 @@
 
 import { useAppSelector } from "@/hook";
 import { getSafeRedirect } from "@/utils/safeRedirect";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect } from "react";
 
@@ -33,10 +34,17 @@ const Container: React.FC<ContainerProps> = ({
         aria-hidden
       />
 
-      <header className="relative z-10 shrink-0 px-4 pt-5 pb-2 text-center sm:pt-6 md:pt-8">
+      <header className="relative z-10 flex shrink-0 items-center justify-between px-4 pt-5 pb-2 sm:px-6 sm:pt-6 md:px-8 md:pt-8">
+        <span className="w-20" aria-hidden />
         <p className="text-xl font-extrabold text-[#121212] sm:text-2xl">
           Tandermis
         </p>
+        <Link
+          href="/pricing"
+          className="text-sm font-semibold text-[#121212] sm:text-base"
+        >
+          View plans
+        </Link>
       </header>
 
       <main className="no-blur relative z-10 flex flex-1 justify-center overflow-y-auto px-4 py-4 sm:px-6 md:px-8 md:py-6 lg:px-10">

@@ -187,7 +187,7 @@ const UpdateInviteDetailsContent = () => {
         id: membershipRes.data.account_id || invitation.account_id,
         name: invitation.account_name,
         account_type: "TEAM",
-        max_seat: latestUser.account_details?.max_seat || 2,
+        max_seat: latestUser.account_details?.max_seat ?? 0,
         address: invitation.address,
         state: invitation.state,
         country: invitation.country,

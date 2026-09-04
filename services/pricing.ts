@@ -11,30 +11,38 @@ export interface PricingPlan {
   subscription_duration: string;
 }
 
+export const extractPricingPlans = (data: unknown): PricingPlan[] => {
+  if (Array.isArray(data)) return data as PricingPlan[];
+  return [];
+};
+
 export const getPricing = () =>
   axios.get<PricingPlan[]>(`${baseUrl}/api/pricing`);
 
-export const formatPlanPrice = (price: number, currency = "NGN") => {
-  if (currency === "NGN") return `₦${Number(price).toLocaleString()}`;
-  return `${currency} ${Number(price).toLocaleString()}`;
+export const formatPlanPrice = (price: number, currency?: string) => {
+  const amount = Number(price).toLocaleString();
+  if (!currency) return amount;
+  if (currency.toUpperCase() === "NGN") return `₦${amount}`;
+  return `${currency} ${amount}`;
 };
 
 export const matchPricingPlan = (
   plans: PricingPlan[],
-  accountType?: AccountType | null,
+  accountType?: AccountType | string | null,
   maxSeat?: number | null
 ): PricingPlan | null => {
   if (!plans.length) return null;
 
   const type = accountType || "INDIVIDUAL";
-  const seats = maxSeat || (type === "INDIVIDUAL" ? 1 : 2);
   const forType = plans
     .filter((plan) => plan.account_type === type)
     .sort((a, b) => a.max_seat - b.max_seat);
 
   const pool = forType.length ? forType : plans;
-  const exact = pool.find((plan) => plan.max_seat === seats);
+  if (maxSeat == null) return pool[0];
+
+  const exact = pool.find((plan) => plan.max_seat === maxSeat);
   if (exact) return exact;
 
-  return pool.find((plan) => plan.max_seat >= seats) || pool[pool.length - 1];
+  return pool.find((plan) => plan.max_seat >= maxSeat) || pool[pool.length - 1];
 };

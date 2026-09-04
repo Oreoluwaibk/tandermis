@@ -14,6 +14,7 @@ import {
 } from "@/utils/accountStorage";
 import { getNickNames } from "@/utils/getNickname";
 import { formatReadableDate } from "@/utils/formatDate";
+import { hasValidSubscription } from "@/utils/subscription";
 import { LogoutOutlined } from "@ant-design/icons";
 import { App, Button, Card, Divider } from "antd";
 import { useRouter } from "next/navigation";
@@ -93,6 +94,7 @@ const Page = () => {
   const canInvite = isAccountAdmin(user);
   const displayName = `${user?.first_name || ""} ${user?.last_name || ""}`.trim();
   const expiry = accountDetails?.subscription_valid_to;
+  const subscribed = hasValidSubscription(user);
   const maxSeat = accountDetails?.max_seat || storedAccount?.max_seat;
 
   return (
@@ -180,7 +182,9 @@ const Page = () => {
               </p>
               <DetailRow
                 label="Subscription status"
-                value={expiry ? "Active" : "Not started"}
+                value={
+                  subscribed ? "Active" : expiry ? "Expired" : "Not started"
+                }
               />
               <DetailRow
                 label="Expires"
@@ -189,7 +193,7 @@ const Page = () => {
               <DetailRow label="Invites sent" value={inviteCount} />
               <DetailRow
                 label="Seats"
-                value={`${inviteCount + 1} / ${maxSeat || 2}`}
+                value={`${inviteCount + 1} / ${maxSeat || "—"}`}
               />
               <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                 {canInvite && (
@@ -203,9 +207,9 @@ const Page = () => {
                 )}
                 <Button
                   className="h-12! flex-1 rounded-[40px]!"
-                  onClick={() => router.push("/payment")}
+                  onClick={() => router.push("/pricing")}
                 >
-                  {expiry ? "Renew subscription" : "Pay subscription"}
+                  {expiry ? "Renew or change plan" : "View plans"}
                 </Button>
               </div>
             </>
@@ -214,9 +218,9 @@ const Page = () => {
           {!isTeam && (
             <Button
               className="mt-6 h-12! w-full rounded-[40px]!"
-              onClick={() => router.push("/payment")}
+              onClick={() => router.push("/pricing")}
             >
-              Pay subscription
+              View plans
             </Button>
           )}
 
