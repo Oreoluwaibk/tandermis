@@ -10,20 +10,23 @@ import {
 import {
   extractPricingPlans,
   formatPlanPrice,
+  formatPlanTitle,
   getPricing,
   matchPricingPlan,
+  plansForAccount,
   PricingPlan,
 } from "@/services/pricing";
 import { getProfileExtras, getStoredAccount } from "@/utils/accountStorage";
 import { createErrorMessage } from "@/utils/errorInstance";
 import { formatPhoneForGateway } from "@/constants/nigeriaLocations";
-import { App, Button, Spin } from "antd";
+import { App, Button, Select, Spin } from "antd";
 import Script from "next/script";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 
-const PaymentPage = () => {
+const PaymentContent = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { modal } = App.useApp();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const [scriptReady, setScriptReady] = useState(false);
@@ -31,11 +34,21 @@ const PaymentPage = () => {
   const [pricingLoading, setPricingLoading] = useState(true);
   const [extras, setExtras] = useState<ReturnType<typeof getProfileExtras>>(null);
   const [accountName, setAccountName] = useState<string | null>(null);
+  const [plans, setPlans] = useState<PricingPlan[]>([]);
   const [plan, setPlan] = useState<PricingPlan | null>(null);
 
+  const requestedType = searchParams.get("account_type");
+  const requestedSeats = searchParams.get("max_seat");
+  const requestedDuration = searchParams.get("duration");
+
   useEffect(() => {
-    if (!isAuthenticated) router.push("/auth/login?next=/payment");
-  }, [isAuthenticated, router]);
+    if (!isAuthenticated) {
+      const query = searchParams.toString();
+      router.push(
+        `/auth/login?next=${encodeURIComponent(`/payment${query ? `?${query}` : ""}`)}`
+      );
+    }
+  }, [isAuthenticated, router, searchParams]);
 
   useEffect(() => {
     setExtras(getProfileExtras());
@@ -46,13 +59,20 @@ const PaymentPage = () => {
       setPricingLoading(true);
       try {
         const { data } = await getPricing();
-        const plans = extractPricingPlans(data);
+        const loaded = extractPricingPlans(data);
+        setPlans(loaded);
+
+        const accountType =
+          requestedType ||
+          getUserAccountType(user) ||
+          storedAccount?.account_type;
+        const maxSeat =
+          requestedSeats != null
+            ? Number(requestedSeats)
+            : user?.account_details?.max_seat || storedAccount?.max_seat;
+
         setPlan(
-          matchPricingPlan(
-            plans,
-            getUserAccountType(user) || storedAccount?.account_type,
-            user?.account_details?.max_seat || storedAccount?.max_seat
-          )
+          matchPricingPlan(loaded, accountType, maxSeat, requestedDuration)
         );
       } catch (err: unknown) {
         const error = err as { response?: { data?: unknown }; message?: string };
@@ -68,7 +88,31 @@ const PaymentPage = () => {
     };
 
     load();
-  }, [modal, user]);
+  }, [modal, requestedDuration, requestedSeats, requestedType, user]);
+
+  const selectablePlans = useMemo(() => {
+    const storedAccount = getStoredAccount();
+    const accountType =
+      plan?.account_type ||
+      requestedType ||
+      getUserAccountType(user) ||
+      storedAccount?.account_type;
+    const maxSeat =
+      accountType === "TEAM"
+        ? plan?.max_seat ||
+          (requestedSeats != null ? Number(requestedSeats) : undefined) ||
+          user?.account_details?.max_seat ||
+          storedAccount?.max_seat
+        : undefined;
+    return plansForAccount(plans, accountType, maxSeat);
+  }, [plan, plans, requestedSeats, requestedType, user]);
+
+  const handleSelectPlan = (duration: string) => {
+    const next = selectablePlans.find(
+      (item) => item.subscription_duration === duration
+    );
+    if (next) setPlan(next);
+  };
 
   const handlePay = async () => {
     if (!plan || !plan.currency) {
@@ -113,7 +157,7 @@ const PaymentPage = () => {
         },
         customizations: {
           title: "Tandermis",
-          description: "Subscription Payment",
+          description: `${formatPlanTitle(plan)} subscription`,
           logo: `${origin}/img.svg`,
         },
         configurations: {
@@ -145,7 +189,7 @@ const PaymentPage = () => {
       />
       <PageShell
         title="Subscription payment"
-        subtitle="Complete payment to activate your Tandermis subscription."
+        subtitle="Choose a period and complete payment to activate your Tandermis subscription."
         backHref="/pricing"
         centered
         panel
@@ -156,6 +200,17 @@ const PaymentPage = () => {
           </div>
         ) : (
           <div className="flex flex-col items-center text-center">
+            {selectablePlans.length > 1 && (
+              <Select
+                className="mb-6 w-full max-w-[320px] text-left"
+                value={plan?.subscription_duration}
+                onChange={handleSelectPlan}
+                options={selectablePlans.map((item) => ({
+                  value: item.subscription_duration,
+                  label: `${formatPlanPrice(item.price, item.currency)} / ${item.subscription_duration}`,
+                }))}
+              />
+            )}
             <p className="text-sm text-[#4F4F4F]">Amount due</p>
             <p className="mt-2 text-4xl font-semibold text-[#121212]">
               {plan
@@ -164,9 +219,7 @@ const PaymentPage = () => {
             </p>
             {plan && (
               <p className="mt-2 text-sm text-[#4F4F4F]">
-                {plan.account_type === "INDIVIDUAL" ? "Individual" : "Team"} ·{" "}
-                {plan.max_seat} seat{plan.max_seat === 1 ? "" : "s"} ·{" "}
-                {plan.subscription_duration}
+                {formatPlanTitle(plan)}
               </p>
             )}
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-[#4F4F4F]">
@@ -205,5 +258,19 @@ const PaymentPage = () => {
     </>
   );
 };
+
+const PaymentPage = () => (
+  <Suspense
+    fallback={
+      <PageShell title="Subscription payment" backHref="/pricing" centered panel>
+        <div className="flex justify-center py-10">
+          <Spin size="large" />
+        </div>
+      </PageShell>
+    }
+  >
+    <PaymentContent />
+  </Suspense>
+);
 
 export default PaymentPage;

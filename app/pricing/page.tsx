@@ -5,7 +5,10 @@ import { setUser } from "@/redux/reducer/auth/auth";
 import {
   extractPricingPlans,
   formatPlanPrice,
+  formatPlanTitle,
   getPricing,
+  paymentQueryForPlan,
+  sortPricingPlans,
   PricingPlan,
 } from "@/services/pricing";
 import { requestFreeTrial } from "@/services/trial";
@@ -19,11 +22,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-const planTitle = (plan: PricingPlan) => {
-  if (plan.account_type === "INDIVIDUAL") return "Individual";
-  return `Team · ${plan.max_seat} seat${plan.max_seat === 1 ? "" : "s"}`;
-};
-
 const PricingPage = () => {
   const router = useRouter();
   const { modal } = App.useApp();
@@ -36,7 +34,7 @@ const PricingPage = () => {
 
   useEffect(() => {
     getPricing()
-      .then((res) => setPlans(extractPricingPlans(res.data)))
+      .then((res) => setPlans(sortPricingPlans(extractPricingPlans(res.data))))
       .catch((err) => {
         modal.error({
           title: "Unable to load pricing",
@@ -101,16 +99,18 @@ const PricingPage = () => {
   };
 
   const handlePaidPlan = (plan: PricingPlan) => {
+    const paymentPath = paymentQueryForPlan(plan);
     if (!isAuthenticated) {
       const params = new URLSearchParams({
         account_type: plan.account_type,
         max_seat: String(plan.max_seat),
-        next: "/payment",
+        duration: plan.subscription_duration,
+        next: paymentPath,
       });
       router.push(`/auth/signup?${params.toString()}`);
       return;
     }
-    router.push("/payment");
+    router.push(paymentPath);
   };
 
   return (
@@ -207,7 +207,7 @@ const PricingPage = () => {
                   {plan.account_type}
                 </p>
                 <h2 className="mt-2 text-xl font-semibold text-[#121212]">
-                  {planTitle(plan)}
+                  {formatPlanTitle(plan)}
                 </h2>
                 <p className="mt-4 text-3xl font-semibold text-[#121212]">
                   {formatPlanPrice(plan.price, plan.currency)}

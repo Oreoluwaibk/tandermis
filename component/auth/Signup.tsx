@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Container from "../Container";
-import { App, Button, Form, Input, Radio, Select } from "antd";
+import { App, Button, Checkbox, Form, Input, Radio, Select } from "antd";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { IUser, registerUser, SignupPayload } from "@/redux/action/auth";
@@ -23,6 +23,9 @@ import {
   formatPlanPrice,
   getPricing,
   matchPricingPlan,
+  paymentQueryForPlan,
+  plansForAccount,
+  teamSeatOptions,
   PricingPlan,
 } from "@/services/pricing";
 import { requestFreeTrial } from "@/services/trial";
@@ -42,6 +45,7 @@ const Signup = () => {
     | AccountType
     | null;
   const requestedSeats = searchParams.get("max_seat");
+  const requestedDuration = searchParams.get("duration");
   const startTrial = requestedPlan === "free";
   const { modal } = App.useApp();
   const dispatch = useAppDispatch();
@@ -54,13 +58,16 @@ const Signup = () => {
   const accountType: AccountType =
     Form.useWatch("account_type", form) || "INDIVIDUAL";
   const selectedSeats: number | undefined = Form.useWatch("max_seat", form);
-  const teamPlans = pricingPlans
-    .filter((plan) => plan.account_type === "TEAM")
-    .sort((a, b) => a.max_seat - b.max_seat);
+  const selectedDuration: string | undefined = Form.useWatch(
+    "subscription_duration",
+    form
+  );
+  const individualPlans = plansForAccount(pricingPlans, "INDIVIDUAL");
   const selectedPlan = matchPricingPlan(
     pricingPlans,
     accountType,
-    accountType === "INDIVIDUAL" ? undefined : selectedSeats
+    accountType === "INDIVIDUAL" ? undefined : selectedSeats,
+    selectedDuration || requestedDuration
   );
 
   useEffect(() => {
@@ -72,22 +79,30 @@ const Signup = () => {
         const preferredSeats = requestedSeats
           ? Number(requestedSeats)
           : undefined;
-        const defaultTeam = matchPricingPlan(
+        const defaultPlan = matchPricingPlan(
           plans,
           preferredType,
-          preferredSeats
+          preferredSeats,
+          requestedDuration
         );
-        if (defaultTeam) {
-          form.setFieldValue("max_seat", defaultTeam.max_seat);
+        if (defaultPlan) {
+          form.setFieldValue("max_seat", defaultPlan.max_seat);
+          form.setFieldValue(
+            "subscription_duration",
+            defaultPlan.subscription_duration
+          );
         }
         if (requestedAccountType) {
           form.setFieldValue("account_type", requestedAccountType);
+        }
+        if (requestedDuration) {
+          form.setFieldValue("subscription_duration", requestedDuration);
         }
       })
       .catch(() => {
         // Signup can continue; payment page will retry pricing later.
       });
-  }, [form, requestedAccountType, requestedSeats]);
+  }, [form, requestedAccountType, requestedDuration, requestedSeats]);
 
   useEffect(() => {
     if (isAuthenticated && !inviteToken) {
@@ -296,7 +311,9 @@ const Signup = () => {
               : "/dermatology"
           );
         } else if (next === "/payment" || next.startsWith("/payment")) {
-          router.push("/payment");
+          router.push(next);
+        } else if (!startTrial && selectedPlan && selectedDuration) {
+          router.push(paymentQueryForPlan(selectedPlan));
         } else if (createdAccount?.account_type === "TEAM") {
           router.push("/invite-team");
         } else {
@@ -402,20 +419,26 @@ const Signup = () => {
                 >
                   <Select
                     placeholder="Select seats"
-                    options={teamPlans.map((plan) => ({
-                      value: plan.max_seat,
-                      label: `${plan.max_seat} seats · ${formatPlanPrice(plan.price, plan.currency)} / ${plan.subscription_duration}`,
-                    }))}
+                    options={teamSeatOptions(pricingPlans)}
                   />
                 </FormItem>
               )}
 
-              {accountType === "INDIVIDUAL" && selectedPlan && (
-                <p className="mb-4 -mt-1 text-sm text-[#4F4F4F]">
-                  Individual plan:{" "}
-                  {formatPlanPrice(selectedPlan.price, selectedPlan.currency)} /{" "}
-                  {selectedPlan.subscription_duration}
-                </p>
+              {accountType === "INDIVIDUAL" && individualPlans.length > 0 && (
+                <FormItem
+                  name="subscription_duration"
+                  label="Subscription period"
+                  extra="You can change this on the payment page. Leave blank to pick later."
+                >
+                  <Select
+                    allowClear
+                    placeholder="Choose a period"
+                    options={individualPlans.map((plan) => ({
+                      value: plan.subscription_duration,
+                      label: `${formatPlanPrice(plan.price, plan.currency)} / ${plan.subscription_duration}`,
+                    }))}
+                  />
+                </FormItem>
               )}
 
               <FormItem
@@ -635,6 +658,33 @@ const Signup = () => {
               showSearch
               options={countries.map((c) => ({ value: c, label: c }))}
             />
+          </FormItem>
+
+          <FormItem
+            name="accept_terms"
+            valuePropName="checked"
+            className="mt-2!"
+            rules={[
+              {
+                validator: (_, value) =>
+                  value
+                    ? Promise.resolve()
+                    : Promise.reject(
+                        new Error("You must accept the Terms of Use to register")
+                      ),
+              },
+            ]}
+          >
+            <Checkbox>
+              I agree to the{" "}
+              <Link
+                href="/terms"
+                target="_blank"
+                className="font-semibold text-[#121212]! underline"
+              >
+                Terms of Use
+              </Link>
+            </Checkbox>
           </FormItem>
 
           <FormItem className="mt-4!">
