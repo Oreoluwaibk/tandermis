@@ -1,11 +1,14 @@
 "use client";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { ConfigProvider, App as AntApp } from "antd";
 import { theme } from "@/theme/themeConfig";
 import { Provider } from "react-redux";
 import { store } from "@/store";
+
+const GA_MEASUREMENT_ID = "G-41PF3YXNH0";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +39,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
         <Provider store={store}>
         <ConfigProvider theme={theme}>
           <AntApp>
