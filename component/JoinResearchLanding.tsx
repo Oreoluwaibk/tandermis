@@ -39,7 +39,7 @@ const JoinResearchLanding = ({
         conditions early and accurately. Your medical expertise and verified
         image data can help save lives through better diagnostics.
       </p>
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-8">
         <RoundBtn
           title="Join the Research"
           type="primary"

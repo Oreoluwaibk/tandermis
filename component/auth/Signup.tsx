@@ -24,7 +24,6 @@ import {
   getPricing,
   matchPricingPlan,
   paymentQueryForPlan,
-  plansForAccount,
   teamSeatOptions,
   PricingPlan,
 } from "@/services/pricing";
@@ -58,16 +57,11 @@ const Signup = () => {
   const accountType: AccountType =
     Form.useWatch("account_type", form) || "INDIVIDUAL";
   const selectedSeats: number | undefined = Form.useWatch("max_seat", form);
-  const selectedDuration: string | undefined = Form.useWatch(
-    "subscription_duration",
-    form
-  );
-  const individualPlans = plansForAccount(pricingPlans, "INDIVIDUAL");
   const selectedPlan = matchPricingPlan(
     pricingPlans,
     accountType,
     accountType === "INDIVIDUAL" ? undefined : selectedSeats,
-    selectedDuration || requestedDuration
+    requestedDuration
   );
 
   useEffect(() => {
@@ -87,16 +81,9 @@ const Signup = () => {
         );
         if (defaultPlan) {
           form.setFieldValue("max_seat", defaultPlan.max_seat);
-          form.setFieldValue(
-            "subscription_duration",
-            defaultPlan.subscription_duration
-          );
         }
         if (requestedAccountType) {
           form.setFieldValue("account_type", requestedAccountType);
-        }
-        if (requestedDuration) {
-          form.setFieldValue("subscription_duration", requestedDuration);
         }
       })
       .catch(() => {
@@ -312,7 +299,7 @@ const Signup = () => {
           );
         } else if (next === "/payment" || next.startsWith("/payment")) {
           router.push(next);
-        } else if (!startTrial && selectedPlan && selectedDuration) {
+        } else if (!startTrial && selectedPlan && requestedDuration) {
           router.push(paymentQueryForPlan(selectedPlan));
         } else if (createdAccount?.account_type === "TEAM") {
           router.push("/invite-team");
@@ -420,23 +407,6 @@ const Signup = () => {
                   <Select
                     placeholder="Select seats"
                     options={teamSeatOptions(pricingPlans)}
-                  />
-                </FormItem>
-              )}
-
-              {accountType === "INDIVIDUAL" && individualPlans.length > 0 && (
-                <FormItem
-                  name="subscription_duration"
-                  label="Subscription period"
-                  extra="You can change this on the payment page. Leave blank to pick later."
-                >
-                  <Select
-                    allowClear
-                    placeholder="Choose a period"
-                    options={individualPlans.map((plan) => ({
-                      value: plan.subscription_duration,
-                      label: `${formatPlanPrice(plan.price, plan.currency)} / ${plan.subscription_duration}`,
-                    }))}
                   />
                 </FormItem>
               )}
