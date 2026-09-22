@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 export const SERVICE_TIMEZONE = "Africa/Lagos";
-export const SERVICE_OPENS_AT = "9:00 AM";
-export const SERVICE_CLOSES_AT = "5:00 PM";
+export const SERVICE_OPENS_AT = "11:00 AM";
+export const SERVICE_CLOSES_AT = "3:00 PM";
 export const SERVICE_DAYS = "Monday to Friday";
 export const AFTER_HOURS_EMAIL =
   process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "tandermis@gmail.com";
@@ -27,11 +27,11 @@ const getLagosParts = (now = new Date()) => {
 
 const WEEKDAY_SHORT = new Set(["Mon", "Tue", "Wed", "Thu", "Fri"]);
 
-/** Available Mon–Fri 9:00 AM–4:59 PM WAT. Unavailable evenings and weekends. */
+/** Available Mon–Fri 11:00 AM–2:59 PM WAT. Unavailable evenings and weekends. */
 export const isServiceAvailable = (now = new Date()) => {
   const { hour, weekday } = getLagosParts(now);
   if (!WEEKDAY_SHORT.has(weekday)) return false;
-  return hour >= 9 && hour < 17;
+  return hour >= 11 && hour < 15;
 };
 
 export const useServiceHours = () => {

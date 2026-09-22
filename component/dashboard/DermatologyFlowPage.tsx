@@ -285,7 +285,7 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
       modal.info({
         title: "Service unavailable",
         content:
-          "Diagnosis is available Monday to Friday, 9:00 AM to 5:00 PM (WAT). We are closed on Saturdays and Sundays.",
+          "Diagnosis is available Monday to Friday, 11:00 AM to 3:00 PM (WAT). We are closed on Saturdays and Sundays.",
       });
       return;
     }
