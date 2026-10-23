@@ -1,48 +1,10 @@
-import { useEffect, useState } from "react";
-
-export const SERVICE_TIMEZONE = "Africa/Lagos";
-export const SERVICE_OPENS_AT = "11:00 AM";
-export const SERVICE_CLOSES_AT = "3:00 PM";
-export const SERVICE_DAYS = "Monday to Friday";
 export const AFTER_HOURS_EMAIL =
   process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "tandermis@gmail.com";
 
-const getLagosParts = (now = new Date()) => {
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: SERVICE_TIMEZONE,
-    hour: "numeric",
-    hour12: false,
-    weekday: "short",
-  }).formatToParts(now);
+export const SERVICE_UNAVAILABLE_MESSAGE =
+  "Our diagnosis service is currently unavailable. To request access, please email us first.";
 
-  const hourPart = parts.find((part) => part.type === "hour")?.value;
-  const weekday = parts.find((part) => part.type === "weekday")?.value;
-  const hour = Number(hourPart);
+/** Diagnosis is paused until access is granted by email. */
+export const isServiceAvailable = () => false;
 
-  return {
-    hour: hour === 24 ? 0 : hour,
-    weekday: weekday || "",
-  };
-};
-
-const WEEKDAY_SHORT = new Set(["Mon", "Tue", "Wed", "Thu", "Fri"]);
-
-/** Available Mon–Fri 11:00 AM–2:59 PM WAT. Unavailable evenings and weekends. */
-export const isServiceAvailable = (now = new Date()) => {
-  const { hour, weekday } = getLagosParts(now);
-  if (!WEEKDAY_SHORT.has(weekday)) return false;
-  return hour >= 11 && hour < 15;
-};
-
-export const useServiceHours = () => {
-  const [available, setAvailable] = useState(() => isServiceAvailable());
-
-  useEffect(() => {
-    const tick = () => setAvailable(isServiceAvailable());
-    tick();
-    const interval = window.setInterval(tick, 30_000);
-    return () => window.clearInterval(interval);
-  }, []);
-
-  return available;
-};
+export const useServiceHours = () => false;

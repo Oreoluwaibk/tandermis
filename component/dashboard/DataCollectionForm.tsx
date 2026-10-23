@@ -276,9 +276,8 @@ const DataCollectionForm = ({
             <div className="mt-5 md:mt-6">
               {serviceUnavailable && (
                 <div className="mb-4 rounded-[20px] bg-[#FFF6E8] px-4 py-3 text-center text-sm leading-relaxed text-[#4F4F4F] md:px-5 md:py-4">
-                  Our diagnosis service is available Monday to Friday, 11:00 AM
-                  to 3:00 PM (WAT). We are closed on Saturdays and Sundays. To
-                  request access outside these hours, email{" "}
+                  Our diagnosis service is currently unavailable. To request
+                  access, please email us first at{" "}
                   <a
                     href={`mailto:${AFTER_HOURS_EMAIL}`}
                     className="font-semibold text-[#121212] underline"

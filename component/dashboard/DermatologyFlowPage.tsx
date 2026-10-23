@@ -32,7 +32,11 @@ import {
   submitReviewerFeedback,
 } from "@/services/dermatology";
 import { createErrorMessage } from "@/utils/errorInstance";
-import { useServiceHours } from "@/utils/serviceHours";
+import {
+  AFTER_HOURS_EMAIL,
+  SERVICE_UNAVAILABLE_MESSAGE,
+  useServiceHours,
+} from "@/utils/serviceHours";
 import { hasValidSubscription } from "@/utils/subscription";
 import SubscriptionGate from "@/component/dashboard/SubscriptionGate";
 import { MenuOutlined } from "@ant-design/icons";
@@ -284,8 +288,7 @@ const DermatologyFlowPage = ({ mode }: DermatologyFlowPageProps) => {
     if (!serviceAvailable) {
       modal.info({
         title: "Service unavailable",
-        content:
-          "Diagnosis is available Monday to Friday, 11:00 AM to 3:00 PM (WAT). We are closed on Saturdays and Sundays.",
+        content: `${SERVICE_UNAVAILABLE_MESSAGE} Write to ${AFTER_HOURS_EMAIL}.`,
       });
       return;
     }
